@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: kamigram-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build KamiGram APK
