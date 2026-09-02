@@ -37,6 +37,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-wearable:18.0.0'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.android.gms:play-services-wallet:19.1.0'
+    implementation 'com.google.firebase:firebase-messaging:22.0.0'
     implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
     implementation 'com.stripe:stripe-android:2.0.2'
     implementation 'com.google.mlkit:language-id:17.0.6'
@@ -102,6 +103,10 @@ android {
         vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi']
 
         multiDexEnabled true
+
+        // KamiGram: Telegram API credentials, overridable from CI (-PTELEGRAM_APP_ID=... -PTELEGRAM_APP_HASH=...)
+        buildConfigField "int", "APP_ID", kamiAppId()
+        buildConfigField "String", "APP_HASH", "\"" + kamiAppHash() + "\""
 
         externalNativeBuild {
             cmake {
@@ -224,6 +229,26 @@ def getProps(String propName) {
     } else {
         return "";
     }
+}
+
+// KamiGram: Telegram API credentials resolution order:
+//   1. -PTELEGRAM_APP_ID / -PTELEGRAM_APP_HASH (CI secrets)
+//   2. TELEGRAM_APP_ID / TELEGRAM_APP_HASH in gradle.properties
+//   3. local.properties
+def kamiAppId() {
+    def v = project.findProperty("TELEGRAM_APP_ID") ?: getProps("TELEGRAM_APP_ID")
+    if (v == null || v.toString().trim().isEmpty()) {
+        throw new GradleException("TELEGRAM_APP_ID is not set. Pass -PTELEGRAM_APP_ID=<api_id> or set it in gradle.properties/local.properties.")
+    }
+    return v.toString().trim()
+}
+
+def kamiAppHash() {
+    def v = project.findProperty("TELEGRAM_APP_HASH") ?: getProps("TELEGRAM_APP_HASH")
+    if (v == null || v.toString().trim().isEmpty()) {
+        throw new GradleException("TELEGRAM_APP_HASH is not set. Pass -PTELEGRAM_APP_HASH=<api_hash> or set it in gradle.properties/local.properties.")
+    }
+    return v.toString().trim()
 }
 
 task checkVisibility {

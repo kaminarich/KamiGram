@@ -525,11 +525,12 @@ public class Theme {
 
                         Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-                        LinearGradient gradientShader = new LinearGradient(0, 0, 0, dp(40), new int[]{0x155F6569, 0x295F6569}, null, Shader.TileMode.CLAMP);
+                        // KamiGram: deeper, warmer drop shadow so bubbles sit above the paper
+                        LinearGradient gradientShader = new LinearGradient(0, 0, 0, dp(40), new int[]{0x1F6B655C, 0x3D6B655C}, null, Shader.TileMode.CLAMP);
                         shadowPaint.setShader(gradientShader);
                         shadowPaint.setColorFilter(new PorterDuffColorFilter(shadowColor, PorterDuff.Mode.MULTIPLY));
 
-                        shadowPaint.setShadowLayer(2, 0, 1, 0xffffffff);
+                        shadowPaint.setShadowLayer(3, 0, 1.5f, 0xffffffff);
                         if (AndroidUtilities.density > 1) {
                             setBounds(-1, -1, bitmap.getWidth() + 1, bitmap.getHeight() + 1);
                         } else {
@@ -550,6 +551,20 @@ public class Theme {
                     shadowPaint.setColor(0xffffffff);
                     setBounds(0, 0, bitmap.getWidth(), bitmap.getHeight());
                     draw(canvas, shadowPaint);
+
+                    // KamiGram skeuomorphic bubbles: bake a satin bevel into the nine-patch.
+                    // The drawable is later tinted with MULTIPLY, so pure white stays at the
+                    // bubble colour while darker bands read as shading. Only the centre 2px row
+                    // of the nine-patch stretches, so the top highlight and bottom lip survive
+                    // on bubbles of any height.
+                    Paint bevelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                    bevelPaint.setShader(new LinearGradient(
+                            0, 0, 0, bitmap.getHeight(),
+                            new int[]{0xffffffff, 0xfffdfdfd, 0xfff1efea, 0xffe6e2da},
+                            new float[]{0f, 0.35f, 0.82f, 1f},
+                            Shader.TileMode.CLAMP
+                    ));
+                    draw(canvas, bevelPaint);
 
                     backgroundDrawable[idx2][idx] = new NinePatchDrawable(bitmap, getByteBuffer(bitmap.getWidth() / 2 - 1, bitmap.getWidth() / 2 + 1, bitmap.getHeight() / 2 - 1, bitmap.getHeight() / 2 + 1, Color.WHITE).array(), new Rect(), null);
                     forceSetColor = true;
@@ -2400,21 +2415,21 @@ public class Theme {
 
         public int getPreviewInColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xffffffff;
+                return 0xfffdfaf4;
             }
             return previewInColor;
         }
 
         public int getPreviewOutColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xfff0fee0;
+                return 0xffe3f2df;
             }
             return previewOutColor;
         }
 
         public int getPreviewBackgroundColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xffcfd9e3;
+                return 0xfff3ead9;
             }
             return previewBackgroundColor;
         }
@@ -4604,9 +4619,10 @@ public class Theme {
         ThemeInfo themeInfo = new ThemeInfo();
         themeInfo.name = "Blue";
         themeInfo.assetName = "bluebubbles.attheme";
-        themeInfo.previewBackgroundColor = 0xff95beec;
-        themeInfo.previewInColor = 0xffffffff;
-        themeInfo.previewOutColor = 0xffd0e6ff;
+        // KamiGram pastel preview swatches
+        themeInfo.previewBackgroundColor = 0xfff3ead9;
+        themeInfo.previewInColor = 0xfffdfaf4;
+        themeInfo.previewOutColor = 0xffe3f2df;
         themeInfo.firstAccentIsDefault = true;
         themeInfo.currentAccentId = DEFALT_THEME_ACCENT_ID;
         themeInfo.sortIndex = 1;
@@ -5382,9 +5398,8 @@ public class Theme {
     }
 
     public static ShapeDrawable createRoundRectDrawable(int rad, int defaultColor) {
-        ShapeDrawable defaultDrawable = new ShapeDrawable(new RoundRectShape(new float[]{rad, rad, rad, rad, rad, rad, rad, rad}, null, null));
-        defaultDrawable.getPaint().setColor(defaultColor);
-        return defaultDrawable;
+        // KamiGram: satin gradient fill so pills/chips read as raised surfaces
+        return new SkeuomorphicShapeDrawable(new RoundRectShape(new float[]{rad, rad, rad, rad, rad, rad, rad, rad}, null, null), defaultColor);
     }
     public static InsetDrawable createRoundRectDrawableShadowed(int rad, int defaultColor) {
         ShapeDrawable defaultDrawable = new ShapeDrawable(new RoundRectShape(new float[]{rad, rad, rad, rad, rad, rad, rad, rad}, null, null));
@@ -5481,9 +5496,8 @@ public class Theme {
         return createSimpleSelectorRoundRectDrawable(rad, defaultColor, pressedColor, maskColor, 0);
     }
     private static Drawable createSimpleSelectorRoundRectDrawable(float[] rad, int defaultColor, int pressedColor, int maskColor, int inset) {
-        ShapeDrawable defaultDrawable = new ShapeDrawable(new RoundRectShape(rad, null, null));
+        ShapeDrawable defaultDrawable = new SkeuomorphicShapeDrawable(new RoundRectShape(rad, null, null), defaultColor);
         defaultDrawable.setPadding(inset, inset, inset, inset);
-        defaultDrawable.getPaint().setColor(defaultColor);
         ShapeDrawable pressedDrawable = new ShapeDrawable(new RoundRectShape(rad, null, null));
         pressedDrawable.getPaint().setColor(maskColor);
         pressedDrawable.setPadding(inset, inset, inset, inset);
@@ -5492,6 +5506,43 @@ public class Theme {
                 new int[]{pressedColor}
         );
         return new BaseCell.RippleDrawableSafe(colorStateList, defaultDrawable, pressedDrawable);
+    }
+
+    /**
+     * KamiGram: satin-finish fill for pastel controls. Draws a vertical light-to-shade
+     * gradient over the requested colour so buttons read as physical, slightly domed
+     * surfaces instead of flat rectangles. Translucent colours (masks, selectors) are
+     * left untouched so ripple and overlay behaviour is unchanged.
+     */
+    private static class SkeuomorphicShapeDrawable extends ShapeDrawable {
+
+        private final int baseColor;
+        private final boolean shaded;
+
+        SkeuomorphicShapeDrawable(RoundRectShape shape, int color) {
+            super(shape);
+            baseColor = color;
+            shaded = Color.alpha(color) > 200;
+            getPaint().setColor(color);
+        }
+
+        @Override
+        protected void onBoundsChange(Rect bounds) {
+            super.onBoundsChange(bounds);
+            if (!shaded || bounds.height() <= 0) {
+                return;
+            }
+            getPaint().setShader(new LinearGradient(
+                    0, bounds.top, 0, bounds.bottom,
+                    new int[]{
+                            ColorUtils.blendARGB(baseColor, 0xffffffff, 0.18f),
+                            baseColor,
+                            ColorUtils.blendARGB(baseColor, 0xff000000, 0.07f)
+                    },
+                    new float[]{0f, 0.55f, 1f},
+                    Shader.TileMode.CLAMP
+            ));
+        }
     }
 
     public static Drawable createSelectorDrawableFromDrawables(Drawable normal, Drawable pressed) {

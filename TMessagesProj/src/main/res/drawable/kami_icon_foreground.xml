@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KamiGram launcher foreground: a rounded lightning bolt ("kaminari" = lightning).
+  Geometry is centred inside the 72dp adaptive safe zone of the 108dp viewport, so it
+  survives circle, squircle and rounded-square masks. Round joins plus a satin
+  top-to-bottom gradient keep it soft and tactile rather than flat.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- soft contact shadow, offset down so the bolt appears lifted -->
+    <group android:translateY="1.6">
+        <path
+            android:pathData="M63.33,23.21 L38.14,58.66 L49.34,58.66 L43.74,84.79 L69.86,47.47 L55.87,47.47 Z"
+            android:fillColor="#334E6878"
+            android:strokeColor="#334E6878"
+            android:strokeWidth="4.66"
+            android:strokeLineJoin="round"
+            android:strokeLineCap="round" />
+    </group>
+
+    <!-- bolt body -->
+    <path
+        android:pathData="M63.33,23.21 L38.14,58.66 L49.34,58.66 L43.74,84.79 L69.86,47.47 L55.87,47.47 Z"
+        android:strokeColor="#FFFFFDF8"
+        android:strokeWidth="4.66"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54"
+                android:startY="23.21"
+                android:endX="54"
+                android:endY="84.79">
+                <item android:offset="0" android:color="#FFFFFFFF" />
+                <item android:offset="0.55" android:color="#FFFDF9F0" />
+                <item android:offset="1" android:color="#FFEEE6D9" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

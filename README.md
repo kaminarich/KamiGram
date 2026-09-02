@@ -1,39 +1,58 @@
-## Telegram messenger for Android
+## KamiGram
 
-[Telegram](https://telegram.org) is a messaging app with a focus on speed and security. It’s superfast, simple and free.
-This repo contains the official source code for [Telegram App for Android](https://play.google.com/store/apps/details?id=org.telegram.messenger).
+KamiGram (`com.kaminari.gram`) is a Telegram client for Android with a skeuomorphic,
+light-pastel interface. It is a fork of the official [Telegram for Android](https://github.com/DrKLO/Telegram)
+client and remains licensed under GPL v2 or later — see [LICENSE](LICENSE).
 
-## Creating your Telegram Application
+The name is short for *kaminari* (lightning), which is also the app icon: a rounded
+pastel bolt on a soft sky-blue plate.
 
-We welcome all developers to use our API and source code to create applications on our platform.
-There are several things we require from **all developers** for the moment.
+### Design
 
-1. [**Obtain your own api_id**](https://core.telegram.org/api/obtaining_api_id) for your application.
-2. Please **do not** use the name Telegram for your app — or make sure your users understand that it is unofficial.
-3. Kindly **do not** use our standard logo (white paper plane in a blue circle) as your app's logo.
-3. Please study our [**security guidelines**](https://core.telegram.org/mtproto/security_guidelines) and take good care of your users' data and privacy.
-4. Please remember to publish **your** code too in order to comply with the licences.
+* Warm paper surfaces (`#FAF7F2`) instead of flat white, with a cream/lilac chat wallpaper.
+* Pastel accent (`#8EC9E8`), mint outgoing bubbles (`#E3F2DF`), cream incoming bubbles (`#FDFAF4`).
+* Message bubbles carry a baked satin bevel and a warm drop shadow, so they read as
+  physical cards; pills and buttons use a light-to-shade gradient fill.
+* Softened ink (`#4A4A55`) rather than pure black.
 
-### API, Protocol documentation
+The default *Classic* theme asset (`bluebubbles.attheme`) is repainted to this palette,
+and the built-in defaults in `ThemeColors.java` match it, so a fresh install looks
+correct before any theme is downloaded.
 
-Telegram API manuals: https://core.telegram.org/api
+### Building
 
-MTproto protocol manuals: https://core.telegram.org/mtproto
+There is nothing to build locally. Every APK is produced by GitHub Actions
+(`.github/workflows/android.yml`) on push to `master` and on `v*` tags:
 
-### Compilation Guide
+* push to `master` → universal release APK as a build artifact
+* push a `v*` tag → the same APK attached to a GitHub Release
 
-**Note**: In order to support [reproducible builds](https://core.telegram.org/reproducible-builds), this repo contains dummy release.keystore,  google-services.json and filled variables inside BuildVars.java. Before publishing your own APKs please make sure to replace all these files with your own.
+No credentials are committed to this repository. The workflow reads them from
+repository secrets (Settings → Secrets and variables → Actions):
 
-You will require Android Studio 3.4, Android NDK rev. 20 and Android SDK 8.1
+| Secret | Purpose |
+| --- | --- |
+| `TELEGRAM_APP_ID` | `api_id` from [my.telegram.org](https://my.telegram.org) |
+| `TELEGRAM_APP_HASH` | `api_hash` from my.telegram.org |
+| `KEYSTORE_BASE64` | release keystore, `base64 -w0 your.jks` |
+| `RELEASE_STORE_PASSWORD` | keystore password |
+| `RELEASE_KEY_ALIAS` | key alias |
+| `RELEASE_KEY_PASSWORD` | key password |
+| `GOOGLE_SERVICES_JSON` | optional; `google-services.json` containing a client for `com.kaminari.gram`, enables FCM push |
 
-1. Download the Telegram source code from https://github.com/DrKLO/Telegram ( git clone https://github.com/DrKLO/Telegram.git )
-2. Copy your release.keystore into TMessagesProj/config
-3. Fill out RELEASE_KEY_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_STORE_PASSWORD in gradle.properties to access your  release.keystore
-4.  Go to https://console.firebase.google.com/, create two android apps with application IDs org.telegram.messenger and org.telegram.messenger.beta, turn on firebase messaging and download google-services.json, which should be copied to the same folder as TMessagesProj.
-5. Open the project in the Studio (note that it should be opened, NOT imported).
-6. Fill out values in TMessagesProj/src/main/java/org/telegram/messenger/BuildVars.java – there’s a link for each of the variables showing where and which data to obtain.
-7. You are ready to compile Telegram.
+Without `GOOGLE_SERVICES_JSON` the build still succeeds: the Firebase Gradle plugin is
+skipped and push notifications fall back to the app's own MTProto connection, which
+costs battery and latency but works.
 
-### Localization
+To build on a workstation anyway, put the same keys in `local.properties`
+(`TELEGRAM_APP_ID`, `TELEGRAM_APP_HASH`, `RELEASE_STORE_FILE`, `RELEASE_STORE_PASSWORD`,
+`RELEASE_KEY_ALIAS`, `RELEASE_KEY_PASSWORD`), drop `google-services.json` into
+`TMessagesProj_App/`, then run `./gradlew :TMessagesProj_App:assembleAfatRelease`.
+Requires JDK 17, NDK 21.4.7075529 and CMake 3.10.2.
 
-We moved all translations to https://translations.telegram.org/en/android/. Please use it.
+### API and protocol documentation
+
+Telegram API: https://core.telegram.org/api — MTProto: https://core.telegram.org/mtproto
+
+Per Telegram's terms for third-party clients, KamiGram uses its own api_id, its own
+name, and its own logo, and publishes its source as required by the licence.

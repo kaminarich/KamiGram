@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- KamiGram monochrome layer (themed icons, Android 13+): flat bolt silhouette -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M63.33,23.21 L38.14,58.66 L49.34,58.66 L43.74,84.79 L69.86,47.47 L55.87,47.47 Z"
+        android:fillColor="#FFFFFFFF"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4.66"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+</vector>

@@ -14,6 +14,8 @@ import androidx.collection.LongSparseArray;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1691,8 +1693,30 @@ public class PushListenerController {
                 }
             }
             Utilities.globalQueue.postRunnable(() -> {
-                SharedConfig.pushStringStatus = "__FIREBASE_FAILED__";
-                PushListenerController.sendRegistrationToServer(getPushType(), null);
+                try {
+                    SharedConfig.pushStringGetTimeStart = SystemClock.elapsedRealtime();
+                    FirebaseApp.initializeApp(ApplicationLoader.applicationContext);
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnCompleteListener(task -> {
+                                SharedConfig.pushStringGetTimeEnd = SystemClock.elapsedRealtime();
+                                if (!task.isSuccessful()) {
+                                    if (BuildVars.LOGS_ENABLED) {
+                                        FileLog.d("Failed to get regid");
+                                    }
+                                    SharedConfig.pushStringStatus = "__FIREBASE_FAILED__";
+                                    PushListenerController.sendRegistrationToServer(getPushType(), null);
+                                    return;
+                                }
+                                String token = task.getResult();
+                                if (!TextUtils.isEmpty(token)) {
+                                    PushListenerController.sendRegistrationToServer(getPushType(), token);
+                                }
+                            });
+                } catch (Throwable e) {
+                    FileLog.e(e);
+                    SharedConfig.pushStringStatus = "__FIREBASE_FAILED__";
+                    PushListenerController.sendRegistrationToServer(getPushType(), null);
+                }
             });
         }
 

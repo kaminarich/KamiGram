@@ -13,3 +13,13 @@ TMessagesProj_App/afat/
 TMessagesProj_AppHockeyApp/afat/
 TMessagesProj_AppStandalone/afat/
 TMessagesProj_AppHuawei/afat/
+
+# KamiGram secrets: injected by CI from repository secrets, never committed
+google-services.json
+**/google-services.json
+agconnect-services.json
+**/agconnect-services.json
+*.jks
+*.keystore
+build.log
+buildfull.log

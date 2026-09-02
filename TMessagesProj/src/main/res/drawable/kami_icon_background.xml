@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- KamiGram: pastel skeuomorphic launcher icon background -->
+<!--
+  KamiGram launcher icon background.
+  Pastel sky gradient with a light top so the icon reads as a lit, domed surface.
+-->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:type="linear"

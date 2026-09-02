@@ -1,6 +1,6 @@
+// KamiGram builds the regular app module only. The Huawei/HockeyApp/Tests modules from
+// upstream Telegram depend on credentials we do not ship (agconnect-services.json,
+// App Center hashes), so they are not part of this project.
 include ':TMessagesProj'
 include ':TMessagesProj_App'
-include ':TMessagesProj_AppHuawei'
-include ':TMessagesProj_AppHockeyApp'
 include ':TMessagesProj_AppStandalone'
-include ':TMessagesProj_AppTests'
