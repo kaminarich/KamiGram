@@ -1,0 +1,66 @@
+name: KamiGram Build & Release
+
+on:
+  push:
+    branches: [master, main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build KamiGram APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install NDK & CMake
+        run: |
+          yes | sdkmanager "ndk;21.4.7075529" "cmake;3.10.2" > /dev/null || true
+
+      - name: Build universal release APK
+        run: |
+          ./gradlew :TMessagesProj_App:assembleAfatRelease --stacktrace --no-daemon
+
+      - name: Locate & rename APK
+        id: apk
+        run: |
+          APK=$(find TMessagesProj_App/build/outputs/apk -name '*.apk' | head -n1)
+          echo "Found: $APK"
+          DEST="KamiGram-${GITHUB_SHA::7}.apk"
+          cp "$APK" "$DEST"
+          ls -lh "$DEST"
+          echo "path=$DEST" >> "$GITHUB_OUTPUT"
+
+      - name: Analyze APK
+        run: |
+          AAPT=$(find $ANDROID_HOME/build-tools -name aapt | sort | tail -n1)
+          $AAPT dump badging "${{ steps.apk.outputs.path }}" | head -n 3
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KamiGram-APK
+          path: ${{ steps.apk.outputs.path }}
+          retention-days: 30
+
+      - name: Create GitHub Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.path }}
+          generate_release_notes: true

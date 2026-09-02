@@ -20,7 +20,6 @@ import com.google.android.play.core.integrity.IntegrityManager;
 import com.google.android.play.core.integrity.IntegrityManagerFactory;
 import com.google.android.play.core.integrity.IntegrityTokenRequest;
 import com.google.android.play.core.integrity.IntegrityTokenResponse;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -867,9 +866,9 @@ public class ConnectionsManager extends BaseController {
                     if (BuildVars.LOGS_ENABLED) {
                         FileLog.d("start firebase task");
                     }
-                    FirebaseTask task = new FirebaseTask(currentAccount);
+                    GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
                     task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
-                    FileLog.d("12. currentTask = firebase");
+                    FileLog.d("12. currentTask = dnstxt");
                     currentTask = task;
                 }
             });
@@ -1445,91 +1444,243 @@ public class ConnectionsManager extends BaseController {
         }
     }
 
-    private static class FirebaseTask extends AsyncTask<Void, Void, NativeByteBuffer> {
+    private static class GoogleDnsLoadTask extends AsyncTask<Void, Void, NativeByteBuffer> {
 
         private int currentAccount;
-        private FirebaseRemoteConfig firebaseRemoteConfig;
+        private int responseDate;
 
-        public FirebaseTask(int instance) {
+        public GoogleDnsLoadTask(int instance) {
             super();
             currentAccount = instance;
         }
 
         protected NativeByteBuffer doInBackground(Void... voids) {
+            ByteArrayOutputStream outbuf = null;
+            InputStream httpConnectionStream = null;
             try {
-                if (native_isTestBackend(currentAccount) != 0) {
-                    throw new Exception("test backend");
+                String domain = native_isTestBackend(currentAccount) != 0 ? "tapv3.stel.com" : AccountInstance.getInstance(currentAccount).getMessagesController().dcDomainName;
+                int len = Utilities.random.nextInt(116) + 13;
+                final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                StringBuilder padding = new StringBuilder(len);
+                for (int a = 0; a < len; a++) {
+                    padding.append(characters.charAt(Utilities.random.nextInt(characters.length())));
                 }
-                firebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-                String currentValue = firebaseRemoteConfig.getString("ipconfigv3");
-                if (BuildVars.LOGS_ENABLED) {
-                    FileLog.d("current firebase value = " + currentValue);
+                URL downloadUrl = new URL("https://dns.google.com/resolve?name=" + domain + "&type=ANY&random_padding=" + padding);
+                URLConnection httpConnection = downloadUrl.openConnection();
+                httpConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A5297c Safari/602.1");
+                httpConnection.setConnectTimeout(5000);
+                httpConnection.setReadTimeout(5000);
+                httpConnection.connect();
+                httpConnectionStream = httpConnection.getInputStream();
+                responseDate = (int) (httpConnection.getDate() / 1000);
+
+                outbuf = new ByteArrayOutputStream();
+
+                byte[] data = new byte[1024 * 32];
+                while (true) {
+                    if (isCancelled()) {
+                        break;
+                    }
+                    int read = httpConnectionStream.read(data);
+                    if (read > 0) {
+                        outbuf.write(data, 0, read);
+                    } else if (read == -1) {
+                        break;
+                    } else {
+                        break;
+                    }
                 }
 
-                firebaseRemoteConfig.fetch(0).addOnCompleteListener(finishedTask -> {
-                    final boolean success = finishedTask.isSuccessful();
-                    Utilities.stageQueue.postRunnable(() -> {
-                        if (success) {
-                            firebaseRemoteConfig.activate().addOnCompleteListener(finishedTask2 -> {
-                                FileLog.d("6. currentTask = null");
-                                currentTask = null;
-                                String config = firebaseRemoteConfig.getString("ipconfigv3");
-                                if (!TextUtils.isEmpty(config)) {
-                                    byte[] bytes = Base64.decode(config, Base64.DEFAULT);
-                                    try {
-                                        NativeByteBuffer buffer = new NativeByteBuffer(bytes.length);
-                                        buffer.writeBytes(bytes);
-                                        int date = (int) (firebaseRemoteConfig.getInfo().getFetchTimeMillis() / 1000);
-                                        native_applyDnsConfig(currentAccount, buffer.address, AccountInstance.getInstance(currentAccount).getUserConfig().getClientPhone(), date);
-                                    } catch (Exception e) {
-                                        FileLog.e(e);
-                                    }
-                                } else {
-                                    if (BuildVars.LOGS_ENABLED) {
-                                        FileLog.d("failed to get firebase result");
-                                        FileLog.d("start dns txt task");
-                                    }
-                                    GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
-                                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
-                                    FileLog.d("7. currentTask = GoogleDnsLoadTask");
-                                    currentTask = task;
-                                }
-                            });
-                        } else {
-                            if (BuildVars.LOGS_ENABLED) {
-                                FileLog.d("failed to get firebase result 2");
-                                FileLog.d("start dns txt task");
-                            }
-                            GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
-                            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
-                            FileLog.d("7. currentTask = GoogleDnsLoadTask");
-                            currentTask = task;
-                        }
-                    });
-                });
-            } catch (Throwable e) {
-                Utilities.stageQueue.postRunnable(() -> {
-                    if (BuildVars.LOGS_ENABLED) {
-                        FileLog.d("failed to get firebase result");
-                        FileLog.d("start dns txt task");
+                JSONObject jsonObject = new JSONObject(new String(outbuf.toByteArray()));
+                JSONArray array = jsonObject.getJSONArray("Answer");
+                len = array.length();
+                ArrayList<String> arrayList = new ArrayList<>(len);
+                for (int a = 0; a < len; a++) {
+                    JSONObject object = array.getJSONObject(a);
+                    int type = object.getInt("type");
+                    if (type != 16) {
+                        continue;
                     }
-                    GoogleDnsLoadTask task = new GoogleDnsLoadTask(currentAccount);
-                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
-                    FileLog.d("8. currentTask = GoogleDnsLoadTask");
-                    currentTask = task;
+                    arrayList.add(object.getString("data"));
+                }
+                Collections.sort(arrayList, (o1, o2) -> {
+                    int l1 = o1.length();
+                    int l2 = o2.length();
+                    if (l1 > l2) {
+                        return -1;
+                    } else if (l1 < l2) {
+                        return 1;
+                    }
+                    return 0;
                 });
-                FileLog.e(e, false);
+                StringBuilder builder = new StringBuilder();
+                for (int a = 0; a < arrayList.size(); a++) {
+                    builder.append(arrayList.get(a).replace("\"", ""));
+                }
+                byte[] bytes = Base64.decode(builder.toString(), Base64.DEFAULT);
+                NativeByteBuffer buffer = new NativeByteBuffer(bytes.length);
+                buffer.writeBytes(bytes);
+                return buffer;
+            } catch (Throwable e) {
+                FileLog.e(e, !(e instanceof SocketTimeoutException || e instanceof SSLException));
+            } finally {
+                try {
+                    if (httpConnectionStream != null) {
+                        httpConnectionStream.close();
+                    }
+                } catch (Throwable e) {
+                    FileLog.e(e);
+                }
+                try {
+                    if (outbuf != null) {
+                        outbuf.close();
+                    }
+                } catch (Exception ignore) {
+
+                }
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(NativeByteBuffer result) {
-
+        protected void onPostExecute(final NativeByteBuffer result) {
+            Utilities.stageQueue.postRunnable(() -> {
+                FileLog.d("3. currentTask = null, result = " + result);
+                currentTask = null;
+                if (result != null) {
+                    native_applyDnsConfig(currentAccount, result.address, AccountInstance.getInstance(currentAccount).getUserConfig().getClientPhone(), responseDate);
+                } else {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("failed to get google result");
+                        FileLog.d("start mozilla task");
+                    }
+                    MozillaDnsLoadTask task = new MozillaDnsLoadTask(currentAccount);
+                    task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, null, null, null);
+                    FileLog.d("4. currentTask = mozilla");
+                    currentTask = task;
+                }
+            });
         }
     }
 
-    public static long lastPremiumFloodWaitShown = 0;
+    private static class MozillaDnsLoadTask extends AsyncTask<Void, Void, NativeByteBuffer> {
+
+        private int currentAccount;
+        private int responseDate;
+
+        public MozillaDnsLoadTask(int instance) {
+            super();
+            currentAccount = instance;
+        }
+
+        protected NativeByteBuffer doInBackground(Void... voids) {
+            ByteArrayOutputStream outbuf = null;
+            InputStream httpConnectionStream = null;
+            try {
+                String domain = native_isTestBackend(currentAccount) != 0 ? "tapv3.stel.com" : AccountInstance.getInstance(currentAccount).getMessagesController().dcDomainName;
+                int len = Utilities.random.nextInt(116) + 13;
+                final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                StringBuilder padding = new StringBuilder(len);
+                for (int a = 0; a < len; a++) {
+                    padding.append(characters.charAt(Utilities.random.nextInt(characters.length())));
+                }
+                URL downloadUrl = new URL("https://mozilla.cloudflare-dns.com/dns-query?name=" + domain + "&type=TXT&random_padding=" + padding);
+                URLConnection httpConnection = downloadUrl.openConnection();
+                httpConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0 like Mac OS X) AppleWebKit/602.1.38 (KHTML, like Gecko) Version/10.0 Mobile/14A5297c Safari/602.1");
+                httpConnection.addRequestProperty("accept", "application/dns-json");
+                httpConnection.setConnectTimeout(5000);
+                httpConnection.setReadTimeout(5000);
+                httpConnection.connect();
+                httpConnectionStream = httpConnection.getInputStream();
+                responseDate = (int) (httpConnection.getDate() / 1000);
+
+                outbuf = new ByteArrayOutputStream();
+
+                byte[] data = new byte[1024 * 32];
+                while (true) {
+                    if (isCancelled()) {
+                        break;
+                    }
+                    int read = httpConnectionStream.read(data);
+                    if (read > 0) {
+                        outbuf.write(data, 0, read);
+                    } else if (read == -1) {
+                        break;
+                    } else {
+                        break;
+                    }
+                }
+
+                JSONObject jsonObject = new JSONObject(new String(outbuf.toByteArray()));
+                JSONArray array = jsonObject.getJSONArray("Answer");
+                len = array.length();
+                ArrayList<String> arrayList = new ArrayList<>(len);
+                for (int a = 0; a < len; a++) {
+                    JSONObject object = array.getJSONObject(a);
+                    int type = object.getInt("type");
+                    if (type != 16) {
+                        continue;
+                    }
+                    arrayList.add(object.getString("data"));
+                }
+                Collections.sort(arrayList, (o1, o2) -> {
+                    int l1 = o1.length();
+                    int l2 = o2.length();
+                    if (l1 > l2) {
+                        return -1;
+                    } else if (l1 < l2) {
+                        return 1;
+                    }
+                    return 0;
+                });
+                StringBuilder builder = new StringBuilder();
+                for (int a = 0; a < arrayList.size(); a++) {
+                    builder.append(arrayList.get(a).replace("\"", ""));
+                }
+                byte[] bytes = Base64.decode(builder.toString(), Base64.DEFAULT);
+                NativeByteBuffer buffer = new NativeByteBuffer(bytes.length);
+                buffer.writeBytes(bytes);
+                return buffer;
+            } catch (Throwable e) {
+                FileLog.e(e, false);
+            } finally {
+                try {
+                    if (httpConnectionStream != null) {
+                        httpConnectionStream.close();
+                    }
+                } catch (Throwable e) {
+                    FileLog.e(e);
+                }
+                try {
+                    if (outbuf != null) {
+                        outbuf.close();
+                    }
+                } catch (Exception ignore) {
+
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(final NativeByteBuffer result) {
+            Utilities.stageQueue.postRunnable(() -> {
+                FileLog.d("5. currentTask = null");
+                currentTask = null;
+                if (result != null) {
+                    native_applyDnsConfig(currentAccount, result.address, AccountInstance.getInstance(currentAccount).getUserConfig().getClientPhone(), responseDate);
+                } else {
+                    if (BuildVars.LOGS_ENABLED) {
+                        FileLog.d("failed to get mozilla txt result");
+                    }
+                }
+            });
+        }
+    }
+
+
     @Keep
     public static void onPremiumFloodWait(final int currentAccount, final int requestToken, boolean isUpload) {
         AndroidUtilities.runOnUIThread(() -> {

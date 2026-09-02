@@ -11,9 +11,10 @@ import java.util.HashMap;
 
 public class ThemeColors {
 
-    public static final int TELEGRAM_COLOR = 0xFF229AF0;        // -14509328
-    public static final int TELEGRAM_COLOR_TEXT = 0xFF298ACF;   // -14054705
-    public static final int DEFAULT_BLACK_TEXT = 0xFF1A1D21;   // -15065823
+    // KamiGram: soft pastel accent (powder blue) replacing Telegram blue
+    public static final int TELEGRAM_COLOR = 0xFF8EC9E8;        // pastel sky blue
+    public static final int TELEGRAM_COLOR_TEXT = 0xFF6FA8C9;   // muted pastel blue text
+    public static final int DEFAULT_BLACK_TEXT = 0xFF4A4A55;   // warm charcoal ink
 
     private static SparseArray<String> colorKeysMap;
     private static HashMap<String, Integer> colorKeysStringMap;
@@ -21,8 +22,8 @@ public class ThemeColors {
         int[] defaultColors = new int[Theme.colorsCount];
 
         defaultColors[key_wallpaperFileOffset] = 0;
-        defaultColors[key_dialogBackground] = 0xffffffff;
-        defaultColors[key_dialogBackgroundGray] = 0xfff0f0f0;
+        defaultColors[key_dialogBackground] = 0xfffaf7f2;
+        defaultColors[key_dialogBackgroundGray] = 0xfff2ede4;
         defaultColors[key_dialogTextBlack] = DEFAULT_BLACK_TEXT;
         defaultColors[key_dialogTextLink] = 0xff2678b6;
         defaultColors[key_dialogLinkSelection] = 0x3362a9e3;
@@ -76,7 +77,7 @@ public class ThemeColors {
         defaultColors[key_share_linkText] = 0xFF222222;
         defaultColors[key_share_linkBackground] = 0x0F000000;
 
-        defaultColors[key_windowBackgroundWhite] = 0xffffffff;
+        defaultColors[key_windowBackgroundWhite] = 0xfffaf7f2;
         defaultColors[key_windowBackgroundUnchecked] = 0xff96A2AD;
         defaultColors[key_windowBackgroundChecked] = 0xff229AF0;
         defaultColors[key_windowBackgroundCheckText] = 0xffffffff;
@@ -173,7 +174,7 @@ public class ThemeColors {
 
 
         defaultColors[key_avatar_backgroundInProfileBlue] = 0xffffffff;
-        defaultColors[key_avatar_backgroundActionBarBlue] = 0xfff5f5f5;
+        defaultColors[key_avatar_backgroundActionBarBlue] = 0xfff6f1e8;
         defaultColors[key_avatar_subtitleInProfileBlue] = DEFAULT_BLACK_TEXT;
         defaultColors[key_avatar_actionBarSelectorBlue] = 0x121a1d21;
         defaultColors[key_avatar_actionBarIconBlue] = DEFAULT_BLACK_TEXT;
@@ -186,7 +187,7 @@ public class ThemeColors {
         defaultColors[key_avatar_nameInMessageBlue] = 0xff368AD1;
         defaultColors[key_avatar_nameInMessagePink] = 0xffC7508B;
 
-        defaultColors[key_actionBarDefault] = 0xffffffff;
+        defaultColors[key_actionBarDefault] = 0xfffaf7f2;
         defaultColors[key_actionBarDefaultIcon] = DEFAULT_BLACK_TEXT;
         defaultColors[key_actionBarActionModeDefault] = 0xffffffff;
         defaultColors[key_actionBarActionModeDefaultTop] = 0x10000000;
@@ -301,19 +302,19 @@ public class ThemeColors {
         defaultColors[key_chat_outGreenCall] = 0xff00c853;
         defaultColors[key_chat_lockIcon] = 0xff222222;
         defaultColors[key_chat_muteIcon] = 0xff79817e;
-        defaultColors[key_chat_inBubble] = 0xffffffff;
-        defaultColors[key_chat_inBubbleSelected] = 0xffecf7fd;
-        defaultColors[key_chat_inBubbleShadow] = 0xff1d3753;
-        defaultColors[key_chat_outBubble] = 0xffefffde;
+        defaultColors[key_chat_inBubble] = 0xfffdfaf4;
+        defaultColors[key_chat_inBubbleSelected] = 0xfff3ece1;
+        defaultColors[key_chat_inBubbleShadow] = 0xff9d8f7d;
+        defaultColors[key_chat_outBubble] = 0xffe3f2df;
         defaultColors[key_chat_outBubbleGradientSelectedOverlay] = 0x14000000;
-        defaultColors[key_chat_outBubbleSelected] = 0xffd9f7c5;
+        defaultColors[key_chat_outBubbleSelected] = 0xffd4e8cf;
         defaultColors[key_chat_outBubbleShadow] = 0xff1e750c;
         defaultColors[key_chat_inMediaIcon] = 0xffffffff;
         defaultColors[key_chat_inMediaIconSelected] = 0xffeff8fe;
         defaultColors[key_chat_outMediaIcon] = 0xffefffde;
         defaultColors[key_chat_outMediaIconSelected] = 0xffe1f8cf;
-        defaultColors[key_chat_messageTextIn] = 0xff000000;
-        defaultColors[key_chat_messageTextOut] = 0xff000000;
+        defaultColors[key_chat_messageTextIn] = 0xff3d3d46;
+        defaultColors[key_chat_messageTextOut] = 0xff2e4231;
         defaultColors[key_chat_messageLinkIn] = 0xff2678b6;
         defaultColors[key_chat_messageLinkOut] = 0xff2678b6;
         defaultColors[key_chat_serviceText] = 0xffffffff;
