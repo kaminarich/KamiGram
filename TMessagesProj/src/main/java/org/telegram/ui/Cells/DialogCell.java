@@ -113,6 +113,7 @@ import org.telegram.ui.Components.Premium.PremiumGradient;
 import org.telegram.ui.Components.PullForegroundDrawable;
 import org.telegram.ui.Components.QuoteSpan;
 import org.telegram.ui.Components.RLottieDrawable;
+import org.telegram.ui.Components.Skeuomorphic;
 import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
 import org.telegram.ui.Components.StaticLayoutEx;
 import org.telegram.ui.Components.StatusDrawable;
@@ -4339,7 +4340,9 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         int x = mentionLeft;
                         rect.set(x, countTop, x + mentionWidth + dp(BADGE_TEXT_PADDING * 2), countTop + dp(BADGE_SIZE));
                         Paint paint = drawCounterMuted && folderId != 0 ? Theme.dialogs_countGrayPaint : Theme.dialogs_countPaint;
-                        canvas.drawRoundRect(rect, rect.height() / 2f, rect.height() / 2f, paint);
+                        // KamiGram: mention badge, raised like the unread pill
+                        Skeuomorphic.drawRaisedRound(canvas, rect, rect.height() / 2f, paint.getColor(),
+                                Skeuomorphic.isDark(resourcesProvider), 1.8f);
                         Theme.dialogs_countTextPaint2.setAlpha((int) ((1.0f - reorderIconProgress) * 255));
 
                         canvas.save();
@@ -5064,7 +5067,10 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
                         canvas.drawPath(counterPath, counterPaintOutline);
                     }
                 } else {
-                    canvas.drawRoundRect(rect, dp(11.5f), dp(11.5f), paint);
+                    // KamiGram: the unread badge is a raised pill, so it is separated
+                    // from the row by its own shadow rather than by colour alone.
+                    Skeuomorphic.drawRaisedRound(canvas, rect, dp(11.5f), paint.getColor(),
+                            Skeuomorphic.isDark(resourcesProvider), 1.8f);
                     if (outline) {
                         canvas.drawRoundRect(rect, dp(11.5f), dp(11.5f), counterPaintOutline);
                     }

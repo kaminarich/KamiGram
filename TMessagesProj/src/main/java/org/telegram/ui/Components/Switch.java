@@ -446,8 +446,10 @@ public class Switch extends View {
             paint2.setColor(color);
 
             rectF.set(x, y, x + width, y + AndroidUtilities.dpf2(14));
-            canvasToDraw.drawRoundRect(rectF, AndroidUtilities.dpf2(7), AndroidUtilities.dpf2(7), paint);
-            canvasToDraw.drawCircle(tx, ty, AndroidUtilities.dpf2(10), paint);
+            // KamiGram: the track is a well carved into the page. The knob that runs
+            // along it is drawn in the second pass so its shadow falls on the track.
+            Skeuomorphic.drawRecessedRound(canvasToDraw, rectF, AndroidUtilities.dpf2(7),
+                    color, Skeuomorphic.isDark(resourcesProvider), 2.5f);
 
             if (a == 0 && rippleDrawable != null) {
                 rippleDrawable.setBounds(tx - AndroidUtilities.dp(18), ty - AndroidUtilities.dp(18), tx + AndroidUtilities.dp(18), ty + AndroidUtilities.dp(18));
@@ -494,7 +496,11 @@ public class Switch extends View {
             alpha = (int) (a1 + (a2 - a1) * colorProgress);
             paint.setColor(((alpha & 0xff) << 24) | ((red & 0xff) << 16) | ((green & 0xff) << 8) | (blue & 0xff));
 
-            canvasToDraw.drawCircle(tx, ty, AndroidUtilities.dp(8), paint);
+            // KamiGram: the knob is a physical cap sitting in the track well. It is
+            // drawn at the track's own radius (10dp) rather than the old 8dp inner
+            // dot, so the cap fills the well and its shadow lands on the floor.
+            Skeuomorphic.drawRaisedCircle(canvasToDraw, tx, ty, AndroidUtilities.dpf2(9.5f),
+                    paint.getColor(), Skeuomorphic.isDark(resourcesProvider), 2.5f);
 
             if (a == 0) {
                 if (iconDrawable != null) {

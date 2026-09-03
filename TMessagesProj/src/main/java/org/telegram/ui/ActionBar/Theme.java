@@ -526,7 +526,7 @@ public class Theme {
                         Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
                         // KamiGram: deeper, warmer drop shadow so bubbles sit above the paper
-                        LinearGradient gradientShader = new LinearGradient(0, 0, 0, dp(40), new int[]{0x1F6B655C, 0x3D6B655C}, null, Shader.TileMode.CLAMP);
+                        LinearGradient gradientShader = new LinearGradient(0, 0, dp(18), dp(40), new int[]{0x1A1B2A3A, 0x421B2A3A}, null, Shader.TileMode.CLAMP);
                         shadowPaint.setShader(gradientShader);
                         shadowPaint.setColorFilter(new PorterDuffColorFilter(shadowColor, PorterDuff.Mode.MULTIPLY));
 
@@ -560,7 +560,7 @@ public class Theme {
                     Paint bevelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
                     bevelPaint.setShader(new LinearGradient(
                             0, 0, 0, bitmap.getHeight(),
-                            new int[]{0xffffffff, 0xfffdfdfd, 0xfff1efea, 0xffe6e2da},
+                            new int[]{0xffffffff, 0xfffcfdfe, 0xfff0f3f7, 0xffe3e9f1},
                             new float[]{0f, 0.35f, 0.82f, 1f},
                             Shader.TileMode.CLAMP
                     ));
@@ -2415,21 +2415,21 @@ public class Theme {
 
         public int getPreviewInColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xfffdfaf4;
+                return 0xffe4ebf5;
             }
             return previewInColor;
         }
 
         public int getPreviewOutColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xffe3f2df;
+                return 0xffc9def2;
             }
             return previewOutColor;
         }
 
         public int getPreviewBackgroundColor() {
             if (firstAccentIsDefault && currentAccentId == DEFALT_THEME_ACCENT_ID) {
-                return 0xfff3ead9;
+                return 0xffd9e1ec;
             }
             return previewBackgroundColor;
         }
@@ -4620,9 +4620,9 @@ public class Theme {
         themeInfo.name = "Blue";
         themeInfo.assetName = "bluebubbles.attheme";
         // KamiGram pastel preview swatches
-        themeInfo.previewBackgroundColor = 0xfff3ead9;
-        themeInfo.previewInColor = 0xfffdfaf4;
-        themeInfo.previewOutColor = 0xffe3f2df;
+        themeInfo.previewBackgroundColor = 0xffd9e1ec;
+        themeInfo.previewInColor = 0xffe4ebf5;
+        themeInfo.previewOutColor = 0xffc9def2;
         themeInfo.firstAccentIsDefault = true;
         themeInfo.currentAccentId = DEFALT_THEME_ACCENT_ID;
         themeInfo.sortIndex = 1;
@@ -4670,8 +4670,8 @@ public class Theme {
         themeInfo = new ThemeInfo();
         themeInfo.name = "Arctic Blue";
         themeInfo.assetName = "arctic.attheme";
-        themeInfo.previewBackgroundColor = 0xfff3ead9;
-        themeInfo.previewInColor = 0xfffdfaf4;
+        themeInfo.previewBackgroundColor = 0xffd9e1ec;
+        themeInfo.previewInColor = 0xffe4ebf5;
         themeInfo.previewOutColor = 0xffdfeef0;
         themeInfo.sortIndex = 5;
         themeInfo.setAccentColorOptions(
