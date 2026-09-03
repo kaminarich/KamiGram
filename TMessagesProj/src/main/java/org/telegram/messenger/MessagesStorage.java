@@ -13488,6 +13488,65 @@ public class MessagesStorage extends BaseController {
         }
     }
 
+    /**
+     * Extraordikami: flag messages as deleted without removing them.
+     *
+     * The serialized TL_message blob starts with the 4-byte constructor id
+     * followed by the 4-byte flags int, so bit 31 of the flags can be set
+     * directly inside the blob, in place, and the row written back. On load the
+     * flag travels with the message and MessageObject.isKamiDeleted() reports it.
+     * Bit 31 is far above every flag the TL schema uses, which is what makes it
+     * safe to smuggle a fork-local marker through server serialization.
+     */
+    public void markMessagesKamiDeleted(final long dialogId, final ArrayList<Integer> mids) {
+        if (mids == null || mids.isEmpty()) {
+            return;
+        }
+        storageQueue.postRunnable(() -> {
+            try {
+                String joined = TextUtils.join(",", mids);
+                for (int table = 0; table < 2; table++) {
+                    String name = table == 0 ? "messages_v2" : "messages_topics";
+                    String where = dialogId != 0 ? "uid = " + dialogId : "is_channel = 0";
+                    SQLiteCursor cursor = database.queryFinalized(
+                            "SELECT data, mid, uid FROM " + name + " WHERE " + where + " AND mid IN (" + joined + ")");
+                    SQLitePreparedStatement state = database.executeFast(
+                            "UPDATE " + name + " SET data = ? WHERE uid = ? AND mid = ?");
+                    try {
+                        while (cursor.next()) {
+                            NativeByteBuffer data = cursor.byteBufferValue(0);
+                            if (data == null) {
+                                continue;
+                            }
+                            int mid = cursor.intValue(1);
+                            long uid = cursor.longValue(2);
+                            try {
+                                data.position(4);
+                                int flags = data.readInt32(true);
+                                flags |= MessageObject.KAMIGRAM_FLAG_DELETED;
+                                data.position(4);
+                                data.writeInt32(flags);
+                                data.position(0);
+                                state.requery();
+                                state.bindByteBuffer(1, data);
+                                state.bindLong(2, uid);
+                                state.bindInteger(3, mid);
+                                state.step();
+                            } finally {
+                                data.reuse();
+                            }
+                        }
+                    } finally {
+                        cursor.dispose();
+                        state.dispose();
+                    }
+                }
+            } catch (Exception e) {
+                FileLog.e(e);
+            }
+        });
+    }
+
     public void markMessagesAsDeletedByRandoms(ArrayList<Long> messages) {
         if (messages.isEmpty()) {
             return;

@@ -509,6 +509,11 @@ public class NotificationsController extends BaseController {
     }
 
     public void removeDeletedMessagesFromNotifications(LongSparseArray<ArrayList<Integer>> deletedMessages, boolean isReactions) {
+        // Extraordikami: with tombstones enabled, a server-side delete should not
+        // retract an already-posted notification
+        if (com.kaminari.gram.KamiConfig.showDeletedMessages && !isReactions) {
+            return;
+        }
         ArrayList<MessageObject> popupArrayRemove = new ArrayList<>(0);
         notificationsQueue.postRunnable(() -> {
             int old_unread_count = total_unread_count;

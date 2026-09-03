@@ -16817,6 +16817,39 @@ public class MessagesController extends BaseController implements NotificationCe
         });
     }
 
+    /**
+     * Extraordikami: a delete-for-everyone arrived from the server, but the user
+     * wants deleted messages to stay visible. Marks the affected in-memory
+     * MessageObjects with the reserved flag bit (so ChatMessageCell can label
+     * them) and rewrites the serialized blobs in the database with the same bit,
+     * which is what makes the label survive a restart. The update itself is not
+     * forwarded, so no removal machinery ever runs for these messages.
+     */
+    private void kamiKeepDeletedMessages(ArrayList<Integer> mids, long dialogId) {
+        if (mids == null || mids.isEmpty()) {
+            return;
+        }
+        for (int a = 0, N = mids.size(); a < N; a++) {
+            MessageObject obj = dialogMessagesByIds.get(mids.get(a));
+            if (obj != null && obj.messageOwner != null) {
+                obj.messageOwner.flags |= MessageObject.KAMIGRAM_FLAG_DELETED;
+            }
+        }
+        if (dialogId != 0) {
+            ArrayList<MessageObject> objs = dialogMessage.get(dialogId);
+            if (objs != null) {
+                for (int a = 0, N = objs.size(); a < N; a++) {
+                    MessageObject obj = objs.get(a);
+                    if (obj != null && obj.messageOwner != null && mids.contains(obj.getId())) {
+                        obj.messageOwner.flags |= MessageObject.KAMIGRAM_FLAG_DELETED;
+                    }
+                }
+            }
+        }
+        getMessagesStorage().markMessagesKamiDeleted(dialogId, mids);
+        com.kaminari.gram.KamiLog.i("Extraordikami", "kept " + mids.size() + " deleted message(s) in dialog " + dialogId);
+    }
+
     protected void deleteMessagesByPush(long dialogId, ArrayList<Integer> ids, long channelId) {
         getMessagesStorage().getStorageQueue().postRunnable(() -> {
             AndroidUtilities.runOnUIThread(() -> {
@@ -18017,15 +18050,22 @@ public class MessagesController extends BaseController implements NotificationCe
                 dialogs_read_outbox_max.put(dialogId, Math.max(value, update.max_id));
             } else if (baseUpdate instanceof TLRPC.TL_updateDeleteMessages) {
                 TLRPC.TL_updateDeleteMessages update = (TLRPC.TL_updateDeleteMessages) baseUpdate;
-                if (deletedMessages == null) {
-                    deletedMessages = new LongSparseArray<>();
+                if (com.kaminari.gram.KamiConfig.showDeletedMessages) {
+                    // Extraordikami: keep the message, mark it deleted in memory and
+                    // in the database blob; the update is swallowed here so the
+                    // normal removal path below never runs
+                    kamiKeepDeletedMessages(update.messages, 0);
+                } else {
+                    if (deletedMessages == null) {
+                        deletedMessages = new LongSparseArray<>();
+                    }
+                    ArrayList<Integer> arrayList = deletedMessages.get(0);
+                    if (arrayList == null) {
+                        arrayList = new ArrayList<>();
+                        deletedMessages.put(0, arrayList);
+                    }
+                    arrayList.addAll(update.messages);
                 }
-                ArrayList<Integer> arrayList = deletedMessages.get(0);
-                if (arrayList == null) {
-                    arrayList = new ArrayList<>();
-                    deletedMessages.put(0, arrayList);
-                }
-                arrayList.addAll(update.messages);
             } else if (baseUpdate instanceof TLRPC.TL_updateDeleteQuickReplyMessages) {
                 TLRPC.TL_updateDeleteQuickReplyMessages update = (TLRPC.TL_updateDeleteQuickReplyMessages) baseUpdate;
                 if (deletedQuickReplyMessages == null) {
@@ -18539,16 +18579,20 @@ public class MessagesController extends BaseController implements NotificationCe
                 if (BuildVars.LOGS_ENABLED) {
                     FileLog.d(baseUpdate + " channelId = " + update.channel_id);
                 }
-                if (deletedMessages == null) {
-                    deletedMessages = new LongSparseArray<>();
-                }
                 long dialogId = -update.channel_id;
-                ArrayList<Integer> arrayList = deletedMessages.get(dialogId);
-                if (arrayList == null) {
-                    arrayList = new ArrayList<>();
-                    deletedMessages.put(dialogId, arrayList);
+                if (com.kaminari.gram.KamiConfig.showDeletedMessages) {
+                    kamiKeepDeletedMessages(update.messages, dialogId);
+                } else {
+                    if (deletedMessages == null) {
+                        deletedMessages = new LongSparseArray<>();
+                    }
+                    ArrayList<Integer> arrayList = deletedMessages.get(dialogId);
+                    if (arrayList == null) {
+                        arrayList = new ArrayList<>();
+                        deletedMessages.put(dialogId, arrayList);
+                    }
+                    arrayList.addAll(update.messages);
                 }
-                arrayList.addAll(update.messages);
             } else if (baseUpdate instanceof TLRPC.TL_updateChannel) {
                 if (BuildVars.LOGS_ENABLED) {
                     TLRPC.TL_updateChannel update = (TLRPC.TL_updateChannel) baseUpdate;

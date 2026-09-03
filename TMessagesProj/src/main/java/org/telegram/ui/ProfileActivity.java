@@ -11182,6 +11182,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
             }
             hasCustomPhoto = user.photo != null && user.photo.personal;
+            // Extraordikami: show @username and the numeric ID immediately in the
+            // profile header. Appended to whatever status text was computed above
+            // (online, last seen, bot) so no information is lost, only gained.
+            if (com.kaminari.gram.KamiConfig.showUserIdInProfile
+                    && user.id != UserObject.VERIFY && user.id != 333000 && user.id != 777000 && user.id != 42777) {
+                StringBuilder kamiId = new StringBuilder();
+                if (!TextUtils.isEmpty(user.username)) {
+                    kamiId.append("@").append(user.username);
+                }
+                kamiId.append(kamiId.length() > 0 ? " • " : "").append("ID ").append(user.id);
+                if (TextUtils.isEmpty(newString2)) {
+                    newString2 = kamiId.toString();
+                } else {
+                    newString2 = newString2 + " • " + kamiId;
+                }
+            }
             try {
                 newString = Emoji.replaceEmoji(newString, nameTextView[1].getPaint().getFontMetricsInt(), false);
             } catch (Exception ignore) {

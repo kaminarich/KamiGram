@@ -172,6 +172,20 @@ public class MessageObject {
     public boolean localEdit;
     public StoriesController.StoriesList parentStoriesList;
     public TLRPC.Message messageOwner;
+
+    /**
+     * Extraordikami: reserved flag bit marking a message that was deleted on the
+     * server but kept visible locally. Stored inside the serialized blob's flags
+     * int (bit 31 is far above anything the TL schema uses), so it survives both
+     * the database round-trip and process restarts. See
+     * MessagesStorage.markMessagesKamiDeleted and MessagesController.kamiKeepDeletedMessages.
+     */
+    public static final int KAMIGRAM_FLAG_DELETED = 1 << 31;
+
+    public boolean isKamiDeleted() {
+        return messageOwner != null && (messageOwner.flags & KAMIGRAM_FLAG_DELETED) != 0;
+    }
+
     public TL_stories.StoryItem storyItem;
     public StoriesController.UploadingStory uploadingStory;
     public TLRPC.Document emojiAnimatedSticker;

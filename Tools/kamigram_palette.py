@@ -282,6 +282,20 @@ AVATAR_WHEEL = {
 }
 
 
+
+# ---- selection & quote visibility ---------------------------------------------
+# Upstream's in-bubble selection highlight was near-white at 31% alpha, invisible
+# on the pastel bubbles; the cursor was a slate that vanished against dark
+# bubbles. Selection is now pastel green in both modes, opaque enough to read
+# over any bubble, with a saturated cursor for the handles.
+CORE.update({
+    "chat_inTextSelectionHighlight":  (0x99A8E6C3, 0x995FB874),
+    "chat_outTextSelectionHighlight": (0x99B4E8CB, 0x9974C98A),
+    "chat_TextSelectionCursor":       (0xFF3F9A5F, 0xFF8CCB9F),
+    "chat_outTextSelectionCursor":    (0xFF3F9A5F, 0xFF8CCB9F),
+    "chat_textSelectBackground":      (0x73A9D8BC, 0x664FA968),
+})
+
 AVATAR_INK = (0xFF2B3640, 0xFFEDE7DD)
 
 

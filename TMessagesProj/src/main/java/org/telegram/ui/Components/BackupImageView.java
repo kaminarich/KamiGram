@@ -355,6 +355,19 @@ public class BackupImageView extends View {
         if (blurAllowed) {
             blurImageReceiver.draw(canvas);
         }
+        // KamiGram: embossed coin edge on avatars - same raised treatment as the
+        // unread badge, drawn inside the circle so caller clipping cannot cut it.
+        // Skipped for animated emoji and non-square (non-avatar) receivers.
+        if (animatedEmojiDrawable == null && imageReceiver.getImageWidth() == imageReceiver.getImageHeight()) {
+            float r = imageReceiver.getImageWidth() / 2f;
+            if (r > 0) {
+                Skeuomorphic.drawCoinFrame(canvas,
+                        imageReceiver.getImageX() + r,
+                        imageReceiver.getImageY() + r,
+                        r,
+                        resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark());
+            }
+        }
     }
 
     public void setColorFilter(ColorFilter colorFilter) {

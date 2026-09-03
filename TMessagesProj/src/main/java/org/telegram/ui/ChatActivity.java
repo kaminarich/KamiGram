@@ -1555,6 +1555,7 @@ public class ChatActivity extends BaseFragment implements
     private final static int chat_menu_options = -2;
     private final static int chat_menu_edit_text_options = -3;
     private final static int clear_history = 15;
+    private final static int kamigram_extra = 912;
     private final static int delete_chat = 16;
     private final static int share_contact = 17;
     private final static int mute = 18;
@@ -3827,6 +3828,8 @@ public class ChatActivity extends BaseFragment implements
                         return;
                     }
                     showDialog(AlertsCreator.createTTLAlert(getParentActivity(), currentEncryptedChat, themeDelegate).create());
+                } else if (id == kamigram_extra) {
+                    presentFragment(new com.kaminari.gram.ui.ExtraordiKamiActivity());
                 } else if (id == clear_history || id == delete_chat || id == auto_delete_timer) {
                     if (getParentActivity() == null) {
                         return;
@@ -4408,6 +4411,7 @@ public class ChatActivity extends BaseFragment implements
             if (currentUser != null && currentUser.self && getDialogId() != UserObject.VERIFY) {
                 headerItem.lazilyAddSubItem(add_shortcut, R.drawable.msg_home, LocaleController.getString(R.string.AddShortcut));
             }
+            headerItem.lazilyAddSubItem(kamigram_extra, R.drawable.msg_log, "Extraordikami");
             if (!isTopic && !ChatObject.isMonoForum(currentChat)) {
                 clearHistoryItem = headerItem.lazilyAddSubItem(clear_history, R.drawable.msg_clear, LocaleController.getString(R.string.ClearHistory));
             }

@@ -372,6 +372,7 @@ public class FileLog {
     }
 
     public static void e(final String message, final Throwable exception) {
+        com.kaminari.gram.KamiLog.e("tmessages", message, exception);
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
@@ -395,6 +396,7 @@ public class FileLog {
     }
 
     public static void e(final String message) {
+        com.kaminari.gram.KamiLog.e("tmessages", message);
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
@@ -417,6 +419,7 @@ public class FileLog {
     }
 
     public static void e(final Throwable e, boolean logToAppCenter) {
+        com.kaminari.gram.KamiLog.e("tmessages", e == null ? "unknown" : e.toString(), e);
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }
@@ -501,6 +504,7 @@ public class FileLog {
     }
 
     public static void fatal(final Throwable e, boolean logToAppCenter) {
+        com.kaminari.gram.KamiLog.fatal(e == null ? "unknown fatal" : e.toString(), e);
         if (!BuildVars.LOGS_ENABLED) {
             return;
         }

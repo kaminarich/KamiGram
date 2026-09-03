@@ -289,6 +289,10 @@ public class ApplicationLoader extends Application {
 
         super.onCreate();
 
+        // KamiGram: open kamigram.log and take over uncaught-exception handling
+        // before anything else can crash, so first-boot failures are recorded too.
+        com.kaminari.gram.KamiLog.install();
+
         if (BuildVars.LOGS_ENABLED) {
             FileLog.d("app start time = " + (startTime = SystemClock.elapsedRealtime()));
             try {

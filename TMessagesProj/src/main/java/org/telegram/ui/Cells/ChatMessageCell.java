@@ -16723,7 +16723,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 if (backgroundDrawable != null) {
                     canvas.save();
                     canvas.clipPath(backgroundDrawable.makePath());
-                    quoteHighlight.paint.setColor(Theme.multAlpha(getThemedColor(currentMessageObject != null && currentMessageObject.isOutOwner() && !currentMessageObject.preview ? Theme.key_chat_outReplyLine : Theme.key_chat_inReplyLine), Theme.isCurrentThemeDark() ? .2f : .2f));
+                    quoteHighlight.paint.setColor(Theme.multAlpha(getThemedColor(currentMessageObject != null && currentMessageObject.isOutOwner() && !currentMessageObject.preview ? Theme.key_chat_outReplyLine : Theme.key_chat_inReplyLine), .42f));
                     quoteHighlight.draw(canvas, textX, textY, backgroundDrawable.getBounds(), getHighlightAlpha(true));
                     canvas.restore();
                 }
@@ -23429,6 +23429,42 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
         }
     }
 
+    private static final TextPaint kamiChipTextPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+    private final RectF kamiChipRect = new RectF();
+
+    /**
+     * Extraordikami: the tombstone chip drawn beside the timestamp on messages
+     * that were deleted on the server but kept visible. Raised pastel-red pill,
+     * white label - deliberately the same depth treatment as the unread badge so
+     * every "this row matters" affordance in the app looks like one family.
+     */
+    private void drawKamiDeletedChip(Canvas canvas, float timeLeft, float timeTop, float timeHeight, int alpha) {
+        if (alpha < 12) {
+            return;
+        }
+        if (kamiChipTextPaint.getTextSize() == 0) {
+            kamiChipTextPaint.setTextSize(AndroidUtilities.dp(8.5f));
+            kamiChipTextPaint.setTypeface(AndroidUtilities.getTypeface("fonts/rmedium.ttf"));
+        }
+        final String label = "DELETED";
+        final float textW = kamiChipTextPaint.measureText(label);
+        final float h = AndroidUtilities.dp(14);
+        final float w = textW + AndroidUtilities.dp(9);
+        final float right = timeLeft - AndroidUtilities.dp(6);
+        final float cy = timeTop + timeHeight / 2f;
+        kamiChipRect.set(right - w, cy - h / 2f, right, cy + h / 2f);
+        final boolean dark = Theme.isCurrentThemeDark();
+        int base = dark ? 0xFF7A423C : 0xFFB4483F;
+        if (alpha < 255) {
+            base = ColorUtils.setAlphaComponent(base, (Color.alpha(base) * alpha) / 255);
+        }
+        org.telegram.ui.Components.Skeuomorphic.drawRaisedPill(canvas, kamiChipRect, base, dark, 1.6f);
+        kamiChipTextPaint.setColor(ColorUtils.setAlphaComponent(0xFFFFFFFF, alpha));
+        Paint.FontMetrics fm = kamiChipTextPaint.getFontMetrics();
+        float ty = cy - (fm.ascent + fm.descent) / 2f;
+        canvas.drawText(label, kamiChipRect.left + AndroidUtilities.dp(4.5f), ty, kamiChipTextPaint);
+    }
+
     private void drawTimeInternal(Canvas canvas, float alpha, boolean fromParent, float timeX, StaticLayout timeLayout, float timeWidth, boolean drawSelectionBackground) {
         if ((!drawTime || groupPhotoInvisible) && shouldDrawTimeOnMedia() || timeLayout == null || (currentMessageObject.deleted && currentPosition != null) || currentMessageObject.type == MessageObject.TYPE_PHONE_CALL) {
             return;
@@ -23735,6 +23771,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 SpoilerEffect.layoutDrawMaybe(timeLayout, canvas);
             }
             canvas.restore();
+        }
+
+        // Extraordikami: tombstone for server-deleted messages kept in the chat
+        if (currentMessageObject.isKamiDeleted() && timeLayout != null && !currentMessageObject.deleted) {
+            drawKamiDeletedChip(canvas, drawTimeX, drawTimeY, timeLayout.getHeight(), (int) (255 * alpha));
         }
 
         if (currentMessageObject.isOutOwner()) {
@@ -25532,7 +25573,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                 if (backgroundDrawable != null) {
                     canvas.save();
                     canvas.clipPath(backgroundDrawable.makePath());
-                    quoteHighlight.paint.setColor(Theme.multAlpha(getThemedColor(currentMessageObject != null && currentMessageObject.isOutOwner() && !currentMessageObject.preview ? Theme.key_chat_outReplyLine : Theme.key_chat_inReplyLine), Theme.isCurrentThemeDark() ? .2f : .2f));
+                    quoteHighlight.paint.setColor(Theme.multAlpha(getThemedColor(currentMessageObject != null && currentMessageObject.isOutOwner() && !currentMessageObject.preview ? Theme.key_chat_outReplyLine : Theme.key_chat_inReplyLine), .42f));
                     quoteHighlight.draw(canvas, textX, textY, backgroundDrawable.getBounds(), getHighlightAlpha(true));
                     canvas.restore();
                 }

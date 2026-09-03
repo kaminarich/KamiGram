@@ -277,6 +277,59 @@ public final class Skeuomorphic {
         drawRaisedRound(canvas, rect, rect.height() / 2f, base, dark, depthDp);
     }
 
+    // ----------------------------------------------------------------- coin frame
+
+    /**
+     * An embossed coin edge drawn strictly <em>inside</em> the circle, so avatars can
+     * be framed no matter how their host view clips. This is the same treatment as
+     * the raised unread badge, expressed as a ring instead of a filled pill:
+     *
+     * <ul>
+     *   <li>a lit arc along the top-left, where the light model says light lands</li>
+     *   <li>a shaded arc along the bottom-right</li>
+     *   <li>a soft inner shadow cast from the rim onto the picture, so the photo
+     *       appears to sit below the coin's raised edge</li>
+     * </ul>
+     *
+     * Called at the end of every avatar draw (BackupImageView), so profile photos,
+     * channel headers, chat avatars and generated avatars all share one frame.
+     *
+     * @param r the avatar radius, in px
+     */
+    public static void drawCoinFrame(Canvas canvas, float cx, float cy, float r, boolean dark) {
+        if (r <= 0) {
+            return;
+        }
+        final float w = Math.max(1f, AndroidUtilities.dpf2(dark ? 0.83f : 1f));
+
+        rimPaint.setStyle(Paint.Style.STROKE);
+        rimPaint.setStrokeWidth(w);
+
+        // lit arc: top-left quadrant
+        rimPaint.setColor(rimLight(dark));
+        canvas.drawArc(cx - r + w / 2f, cy - r + w / 2f,
+                cx + r - w / 2f, cy + r - w / 2f,
+                135f, 110f, false, rimPaint);
+
+        // shaded arc: bottom-right quadrant
+        rimPaint.setColor(rimShade(dark));
+        canvas.drawArc(cx - r + w / 2f, cy - r + w / 2f,
+                cx + r - w / 2f, cy + r - w / 2f,
+                -45f, 110f, false, rimPaint);
+
+        // inner shadow falling from the lit edge onto the picture: a translucent
+        // dark ring just inside the rim, thicker toward the top
+        final float shadowW = Math.max(1f, AndroidUtilities.dpf2(1.7f));
+        paint.setShader(null);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(shadowW);
+        paint.setColor(dark ? 0x59000000 : 0x2E1B2A3A);
+        canvas.drawArc(cx - r + w + shadowW / 2f, cy - r + w + shadowW / 2f,
+                cx + r - w - shadowW / 2f, cy + r - w - shadowW / 2f,
+                120f, 150f, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
     // ---------------------------------------------------------------- drawables
 
     /**
