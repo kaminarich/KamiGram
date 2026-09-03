@@ -4646,9 +4646,9 @@ public class Theme {
         themeInfo = new ThemeInfo();
         themeInfo.name = "Dark Blue";
         themeInfo.assetName = "darkblue.attheme";
-        themeInfo.previewBackgroundColor = 0xff5f6e82;
-        themeInfo.previewInColor = 0xff76869c;
-        themeInfo.previewOutColor = 0xff82a8e3;
+        themeInfo.previewBackgroundColor = 0xff17150f;
+        themeInfo.previewInColor = 0xff2b2823;
+        themeInfo.previewOutColor = 0xff2f3a2e;
         themeInfo.sortIndex = 3;
         themeInfo.setAccentColorOptions(
                 new int[]    {                    0xFF927BD4,                    0xFF698AFB,                    0xFF23A7F0,                    0xFF7B71D1,                    0xFF69B955,                    0xFF2990EA,                    0xFF7082E9,                    0xFF66BAED,                    0xff3685fa,                    0xff46c8ed,                    0xff64AC5F,                    0xffeb7cb1,                    0xffee902a,                    0xffa281f0,                    0xffd34324,                    0xffeebd34,                    0xff7f8fab,                    0xff3581e3 },
@@ -4670,9 +4670,9 @@ public class Theme {
         themeInfo = new ThemeInfo();
         themeInfo.name = "Arctic Blue";
         themeInfo.assetName = "arctic.attheme";
-        themeInfo.previewBackgroundColor = 0xffe1e9f0;
-        themeInfo.previewInColor = 0xffffffff;
-        themeInfo.previewOutColor = 0xff6ca1eb;
+        themeInfo.previewBackgroundColor = 0xfff3ead9;
+        themeInfo.previewInColor = 0xfffdfaf4;
+        themeInfo.previewOutColor = 0xffdfeef0;
         themeInfo.sortIndex = 5;
         themeInfo.setAccentColorOptions(
                 new int[]    {                    0xFF40B1E2,                    0xFF41B05D,                    0xFFCE8C20,                    0xFF57A3EB,                    0xFFDE8534,                    0xFFCC6189,                    0xFF3490EB,                    0xFF43ACC7,                    0xFF52AC44,                    0xFFCD5F93,                    0xFFD28036,                    0xFF8366CC,                    0xFFCE4E57,                    0xFFD3AE40,                    0xFF7B88AB },
@@ -4694,9 +4694,9 @@ public class Theme {
         themeInfo = new ThemeInfo();
         themeInfo.name = "Day";
         themeInfo.assetName = "day.attheme";
-        themeInfo.previewBackgroundColor = 0xffffffff;
-        themeInfo.previewInColor = 0xffebeef4;
-        themeInfo.previewOutColor = 0xff7cb2fe;
+        themeInfo.previewBackgroundColor = 0xfffaf7f2;
+        themeInfo.previewInColor = 0xfff3ece1;
+        themeInfo.previewOutColor = 0xffdfeef0;
         themeInfo.sortIndex = 2;
         themeInfo.setAccentColorOptions(
                 new int[]    { 0xFF56A2C9, 0xFFCC6E83, 0xFFD08E47, 0xFFCC6462, 0xFF867CD2, 0xFF4C91DF, 0xFF57B4D9, 0xFF54B169, 0xFFD9BF3F, 0xFFCC6462, 0xFFCC6E83, 0xFF9B7BD2, 0xFFD79144, 0xFF7B88AB },
@@ -4718,9 +4718,9 @@ public class Theme {
         themeInfo = new ThemeInfo();
         themeInfo.name = "Night";
         themeInfo.assetName = "night.attheme";
-        themeInfo.previewBackgroundColor = 0xff535659;
-        themeInfo.previewInColor = 0xff747A84;
-        themeInfo.previewOutColor = 0xff75A2E6;
+        themeInfo.previewBackgroundColor = 0xff17150f;
+        themeInfo.previewInColor = 0xff2b2823;
+        themeInfo.previewOutColor = 0xff35596e;
         themeInfo.sortIndex = 4;
         themeInfo.setAccentColorOptions(
                 new int[]    {                    0xFF6ABE3F,                    0xFF8D78E3,                    0xFFDE5E7E,                    0xFF5977E8,                    0xFFDBC11A,                    0xff3e88f7,                    0xff4ab5d3,                    0xff4ab841,                    0xffd95576,                    0xffe27d2b,                    0xff936cda,                    0xffd04336,                    0xffe8ae1c,                    0xff7988a3 },
