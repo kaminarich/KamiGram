@@ -94,23 +94,36 @@ jobs:
           ls -lh "$DEST"
           echo "path=$DEST" >> "$GITHUB_OUTPUT"
 
-      - name: Analyze APK
-        run: |
-          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -n1)
-          "$AAPT" dump badging "${{ steps.apk.outputs.path }}" | grep -E "^package:|^sdkVersion:|^targetSdkVersion:|^application-label:|^native-code:"
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n1)
-          "$APKSIGNER" verify --print-certs "${{ steps.apk.outputs.path }}" | grep -E "Signer #1 certificate (DN|SHA-256)"
-
-      - name: Clean up secrets
-        if: always()
-        run: rm -f kamigram.jks */google-services.json
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: KamiGram-APK
           path: ${{ steps.apk.outputs.path }}
           retention-days: 30
+
+      - name: Analyze APK
+        run: |
+          APK="${{ steps.apk.outputs.path }}"
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -n1)
+          "$AAPT" dump badging "$APK" > badging.txt
+          grep -E "^package:|^sdkVersion:|^targetSdkVersion:|^application-label:|^native-code:" badging.txt || true
+
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n1)
+          echo "apksigner: $APKSIGNER"
+          set +e
+          "$APKSIGNER" verify --verbose --print-certs "$APK" > signature.txt 2>&1
+          rc=$?
+          set -e
+          cat signature.txt
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::apksigner exited $rc; APK signature is not valid"
+            exit 1
+          fi
+          rm -f badging.txt signature.txt
+
+      - name: Clean up secrets
+        if: always()
+        run: rm -f kamigram.jks */google-services.json
 
       - name: Create GitHub Release (tags only)
         if: startsWith(github.ref, 'refs/tags/')
