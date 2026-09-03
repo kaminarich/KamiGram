@@ -133,14 +133,14 @@ public class ExtraordiKamiActivity extends BaseFragment {
                 cell.setTextAndValueAndCheck(
                         "Show Deleted Messages",
                         "Messages deleted for everyone stay in the chat, labeled as deleted",
-                        com.kaminari.gram.KamiConfig.showDeletedMessages,
+                        com.kaminari.gram.KamiConfig.showDeletedMessages(),
                         true,
                         true);
             } else if (row == ROW_USER_ID) {
                 cell.setTextAndValueAndCheck(
                         "Show User ID in Profile",
                         "Display @username and the numeric ID in profile headers",
-                        com.kaminari.gram.KamiConfig.showUserIdInProfile,
+                        com.kaminari.gram.KamiConfig.showUserIdInProfile(),
                         true,
                         false);
             }

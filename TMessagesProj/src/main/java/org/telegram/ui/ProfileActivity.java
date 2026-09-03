@@ -11185,7 +11185,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
             // Extraordikami: show @username and the numeric ID immediately in the
             // profile header. Appended to whatever status text was computed above
             // (online, last seen, bot) so no information is lost, only gained.
-            if (com.kaminari.gram.KamiConfig.showUserIdInProfile
+            if (com.kaminari.gram.KamiConfig.showUserIdInProfile()
                     && user.id != UserObject.VERIFY && user.id != 333000 && user.id != 777000 && user.id != 42777) {
                 StringBuilder kamiId = new StringBuilder();
                 if (!TextUtils.isEmpty(user.username)) {

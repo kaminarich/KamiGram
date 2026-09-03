@@ -2844,6 +2844,7 @@ public class ChatActivity extends BaseFragment implements
         getNotificationCenter().addObserver(this, NotificationCenter.voiceTranscriptionUpdate);
         getNotificationCenter().addObserver(this, NotificationCenter.animatedEmojiDocumentLoaded);
         getNotificationCenter().addObserver(this, NotificationCenter.replaceMessagesObjects);
+        getNotificationCenter().addObserver(this, NotificationCenter.kamiMessagesKeptDeleted);
         getNotificationCenter().addObserver(this, NotificationCenter.notificationsSettingsUpdated);
         getNotificationCenter().addObserver(this, NotificationCenter.replyMessagesDidLoad);
         getNotificationCenter().addObserver(this, NotificationCenter.didReceivedWebpages);
@@ -3325,6 +3326,7 @@ public class ChatActivity extends BaseFragment implements
         getNotificationCenter().removeObserver(this, NotificationCenter.voiceTranscriptionUpdate);
         getNotificationCenter().removeObserver(this, NotificationCenter.animatedEmojiDocumentLoaded);
         getNotificationCenter().removeObserver(this, NotificationCenter.replaceMessagesObjects);
+        getNotificationCenter().removeObserver(this, NotificationCenter.kamiMessagesKeptDeleted);
         getNotificationCenter().removeObserver(this, NotificationCenter.notificationsSettingsUpdated);
         getNotificationCenter().removeObserver(this, NotificationCenter.replyMessagesDidLoad);
         getNotificationCenter().removeObserver(this, NotificationCenter.didReceivedWebpages);
@@ -22831,6 +22833,16 @@ public class ChatActivity extends BaseFragment implements
                         int position = index + chatAdapter.messagesStartRow;
                         chatAdapter.updateRowAtPosition(position);
                     }
+                }
+            }
+        } else if (id == NotificationCenter.kamiMessagesKeptDeleted) {
+            // Extraordikami: the flag was already set on the MessageObjects, so a
+            // repaint is enough - no list mutation, no scroll disturbance.
+            long keptDialogId = (long) args[0];
+            if (keptDialogId == 0 || keptDialogId == dialog_id) {
+                if (chatListView != null) {
+                    chatListView.invalidateViews();
+                    chatListView.invalidate();
                 }
             }
         } else if (id == NotificationCenter.replaceMessagesObjects) {

@@ -23,6 +23,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify fork code
+        run: |
+          # Cheap symbol/arity/palette checks. javac -proc:only parses but does
+          # not resolve symbols, so this catches the mistakes that otherwise cost
+          # a full 47-minute native build to discover.
+          python3 Tools/kamigram_verify.py
+
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
@@ -35,6 +42,18 @@ jobs:
       - name: Install NDK & CMake
         run: |
           yes | sdkmanager "ndk;21.4.7075529" "cmake;3.10.2" > /dev/null || true
+
+      - name: Compile Java sources (fail fast)
+        env:
+          TELEGRAM_APP_ID: ${{ secrets.TELEGRAM_APP_ID }}
+          TELEGRAM_APP_HASH: ${{ secrets.TELEGRAM_APP_HASH }}
+        run: |
+          # Java-only compile before the ~40 minute native build, so a symbol
+          # error surfaces in a couple of minutes instead of at the end.
+          ./gradlew :TMessagesProj:compileReleaseJavaWithJavac \
+            --no-daemon \
+            -PTELEGRAM_APP_ID="$TELEGRAM_APP_ID" \
+            -PTELEGRAM_APP_HASH="$TELEGRAM_APP_HASH"
 
       - name: Restore signing keystore
         env:

@@ -357,15 +357,17 @@ public class BackupImageView extends View {
         }
         // KamiGram: embossed coin edge on avatars - same raised treatment as the
         // unread badge, drawn inside the circle so caller clipping cannot cut it.
-        // Skipped for animated emoji and non-square (non-avatar) receivers.
+        // Only for round receivers: a coin edge on a square thumbnail is wrong.
         if (animatedEmojiDrawable == null && imageReceiver.getImageWidth() == imageReceiver.getImageHeight()) {
+            int[] radii = imageReceiver.getRoundRadius(true);
+            boolean round = radii != null && radii.length > 0 && radii[0] >= imageReceiver.getImageWidth() / 2f - AndroidUtilities.dp(1);
             float r = imageReceiver.getImageWidth() / 2f;
-            if (r > 0) {
+            if (round && r > 0) {
                 Skeuomorphic.drawCoinFrame(canvas,
                         imageReceiver.getImageX() + r,
                         imageReceiver.getImageY() + r,
                         r,
-                        resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark());
+                        Skeuomorphic.isDark());
             }
         }
     }

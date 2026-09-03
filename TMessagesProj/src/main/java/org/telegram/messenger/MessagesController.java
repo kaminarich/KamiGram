@@ -16847,6 +16847,11 @@ public class MessagesController extends BaseController implements NotificationCe
             }
         }
         getMessagesStorage().markMessagesKamiDeleted(dialogId, mids);
+        // repaint any open chat so the DELETED chip appears without a reopen.
+        // dialogId is 0 for private/small-group updates: the id space is global
+        // there, so listeners match on message id alone.
+        AndroidUtilities.runOnUIThread(() ->
+                getNotificationCenter().postNotificationName(NotificationCenter.kamiMessagesKeptDeleted, dialogId, mids));
         com.kaminari.gram.KamiLog.i("Extraordikami", "kept " + mids.size() + " deleted message(s) in dialog " + dialogId);
     }
 
@@ -18050,7 +18055,7 @@ public class MessagesController extends BaseController implements NotificationCe
                 dialogs_read_outbox_max.put(dialogId, Math.max(value, update.max_id));
             } else if (baseUpdate instanceof TLRPC.TL_updateDeleteMessages) {
                 TLRPC.TL_updateDeleteMessages update = (TLRPC.TL_updateDeleteMessages) baseUpdate;
-                if (com.kaminari.gram.KamiConfig.showDeletedMessages) {
+                if (com.kaminari.gram.KamiConfig.showDeletedMessages()) {
                     // Extraordikami: keep the message, mark it deleted in memory and
                     // in the database blob; the update is swallowed here so the
                     // normal removal path below never runs
@@ -18580,7 +18585,7 @@ public class MessagesController extends BaseController implements NotificationCe
                     FileLog.d(baseUpdate + " channelId = " + update.channel_id);
                 }
                 long dialogId = -update.channel_id;
-                if (com.kaminari.gram.KamiConfig.showDeletedMessages) {
+                if (com.kaminari.gram.KamiConfig.showDeletedMessages()) {
                     kamiKeepDeletedMessages(update.messages, dialogId);
                 } else {
                     if (deletedMessages == null) {

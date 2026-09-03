@@ -1,48 +1,47 @@
 package com.kaminari.gram;
 
 import android.content.Context;
-import android.os.Process;
 
 import org.telegram.messenger.ApplicationLoader;
-import org.telegram.messenger.BuildVars;
-import org.telegram.messenger.FileLog;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * KamiGram's own always-on log.
+ * KamiGram's always-on log.
  *
- * Upstream {@link FileLog} is gated behind {@code BuildVars.LOGS_ENABLED}, which is
- * false on release builds, so by default a fork ships blind: crashes and errors
- * vanish the moment the process dies. This class exists to fix that. It writes to
- * exactly one file,
+ * Upstream {@link org.telegram.messenger.FileLog} is gated behind
+ * {@code BuildVars.LOGS_ENABLED}, which is false on release builds, so by default
+ * a fork ships blind: crashes and errors vanish when the process dies. This class
+ * fixes that. It writes to exactly one file,
  *
  * <pre>/data/data/com.kaminari.gram/files/kamigram.log</pre>
  *
- * and is always enabled, on every build type, for three categories of events:
+ * on every build type, for three categories of events:
  *
  * <ul>
- *   <li>uncaught exceptions (installed as the default handler in
- *       {@link #install()}, called from ApplicationLoader)</li>
- *   <li>errors and warnings mirrored from FileLog, so every place upstream already
+ *   <li>uncaught exceptions, via the handler installed in {@link #install()}</li>
+ *   <li>errors and fatals mirrored from FileLog, so everything upstream already
  *       considers worth logging lands here too</li>
- *   <li>fork events, currently deleted-message capture from MessagesController</li>
+ *   <li>fork events, currently Extraordikami's deleted-message capture</li>
  * </ul>
  *
- * Design notes:
- * <ul>
- *   <li>Never calls FileLog back, so mirroring cannot recurse.</li>
- *   <li>Writes happen on a single daemon thread; the log call sites (which include
- *       the crash handler, mid-stacktrace) never block or throw.</li>
- *   <li>The file is capped at {@link #MAX_SIZE} bytes and trimmed from the top when
- *       it grows past that, so the log cannot eat the filesystem.</li>
- * </ul>
+ * <h3>Why writes are synchronous</h3>
+ * An earlier revision queued lines onto a daemon thread. That is wrong for the
+ * primary use case: when the crash handler runs, the process is about to die, and
+ * a queued line is lost if the writer thread is not scheduled first. Every write
+ * therefore appends and flushes inline under one lock. This is safe because the
+ * call sites are errors, not hot paths - upstream only reaches FileLog.e on an
+ * actual failure.
+ *
+ * The writer is deliberately fail-silent: a logging fault must never mask, or
+ * become, the fault being logged. After the first failure the class disables
+ * itself instead of retrying.
  */
 public final class KamiLog {
 
@@ -51,47 +50,55 @@ public final class KamiLog {
 
     public static final String FILE_NAME = "kamigram.log";
 
-    /** Keep the log bounded: past this size the oldest half is discarded. */
+    /** Past this size the oldest half is dropped, so the log cannot grow unbounded. */
     private static final long MAX_SIZE = 4L * 1024 * 1024;
 
     private static final Object lock = new Object();
-    private static final AtomicBoolean installed = new AtomicBoolean(false);
-    private static final AtomicBoolean failed = new AtomicBoolean(false);
     private static final SimpleDateFormat stamp =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
 
+    private static volatile boolean disabled;
     private static File file;
     private static OutputStreamWriter writer;
-    private static Thread logThread;
+    private static long written;
 
-    /** Install once per process: opens the file and takes over crash handling. */
+    /** Opens the log and takes over crash handling. Idempotent. */
     public static void install() {
-        if (!installed.compareAndSet(false, true)) {
-            return;
-        }
-        try {
-            Context context = ApplicationLoader.applicationContext;
-            if (context == null) {
+        synchronized (lock) {
+            if (file != null || disabled) {
                 return;
             }
-            File dir = context.getFilesDir();
-            if (dir == null) {
-                return;
-            }
-            file = new File(dir, FILE_NAME);
-
-            final Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
-            Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-                // record first: the previous handler may kill the process
-                write("FATAL", "uncaught exception on thread " + thread.getName(), throwable);
-                flush();
-                if (previous != null) {
-                    previous.uncaughtException(thread, throwable);
+            try {
+                Context context = ApplicationLoader.applicationContext;
+                if (context == null) {
+                    return; // called too early; ApplicationLoader retries
                 }
-            });
-        } catch (Throwable t) {
-            failed.set(true);
+                File dir = context.getFilesDir();
+                if (dir == null) {
+                    disabled = true;
+                    return;
+                }
+                file = new File(dir, FILE_NAME);
+                written = file.exists() ? file.length() : 0;
+            } catch (Throwable t) {
+                disabled = true;
+                return;
+            }
         }
+
+        final Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            // record first: the previous handler usually kills the process
+            write("FATAL", "app", "uncaught exception on thread " + thread.getName(), throwable);
+            if (previous != null) {
+                previous.uncaughtException(thread, throwable);
+            }
+        });
+
+        // Deliberately does not touch BuildVars here: its static initialiser
+        // installs an uncaught handler of its own, and triggering that from
+        // inside install() would nest the two handlers in load order.
+        write("INFO", "KamiLog", "log opened", null);
     }
 
     // ------------------------------------------------------------------- API
@@ -114,158 +121,103 @@ public final class KamiLog {
 
     public static void fatal(String message, Throwable throwable) {
         write("FATAL", "app", message, throwable);
-        flush();
     }
 
-    // ----------------------------------------------------------------- engine
-
-    private static void write(String level, String tag, String message, Throwable throwable) {
-        if (failed.get() || file == null) {
-            return;
-        }
-        final String line = format(level, tag, message, throwable);
-        synchronized (lock) {
-            try {
-                ensureThread();
-                if (logThread == null) {
-                    // no thread could be created (thread limit): write inline
-                    append(line);
-                    return;
-                }
-                final String captured = line;
-                //noinspection SynchronizationOnLocalVariableOrMethodParameter
-                synchronized (pending) {
-                    pending.append(captured).append('\n');
-                    pending.notifyAll();
-                }
-            } catch (Throwable t) {
-                failed.set(true);
-            }
-        }
-    }
-
-    private static final StringBuilder pending = new StringBuilder();
-
-    private static void ensureThread() {
-        if (logThread != null && logThread.isAlive()) {
-            return;
-        }
-        try {
-            logThread = new Thread(KamiLog::loop, "KamiLog");
-            logThread.setDaemon(true);
-            logThread.setPriority(Thread.MIN_PRIORITY + 1);
-            logThread.start();
-        } catch (Throwable ignored) {
-            logThread = null;
-        }
-    }
-
-    private static void loop() {
-        //noinspection InfiniteLoopStatement
-        while (true) {
-            String chunk;
-            synchronized (pending) {
-                while (pending.length() == 0) {
-                    try {
-                        pending.wait();
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        return;
-                    }
-                }
-                chunk = pending.toString();
-                pending.setLength(0);
-            }
-            try {
-                append(chunk);
-            } catch (Throwable t) {
-                failed.set(true);
-                return;
-            }
-        }
-    }
-
-    private static void append(String line) throws Exception {
-        if (writer == null) {
-            trimIfNeeded();
-            writer = new OutputStreamWriter(new FileOutputStream(file, true));
-        }
-        writer.write(line);
-        if (!line.endsWith("\n")) {
-            writer.write('\n');
-        }
-        writer.flush();
-    }
-
-    /** When the file passes MAX_SIZE, keep only the newest half. */
-    private static void trimIfNeeded() throws Exception {
-        if (!file.exists() || file.length() <= MAX_SIZE) {
-            return;
-        }
-        File trimmed = new File(file.getParentFile(), FILE_NAME + ".tmp");
-        try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(file, "r")) {
-            raf.seek(file.length() / 2);
-            // drop until the next line boundary so the kept half starts clean
-            while (raf.getFilePointer() < file.length()) {
-                if (raf.read() == '\n') {
-                    break;
-                }
-            }
-            try (FileOutputStream out = new FileOutputStream(trimmed)) {
-                byte[] buf = new byte[8192];
-                int read;
-                while ((read = raf.read(buf)) > 0) {
-                    out.write(buf, 0, read);
-                }
-            }
-        }
-        //noinspection ResultOfMethodCallIgnored
-        trimmed.renameTo(file);
-    }
-
-    private static String format(String level, String tag, String message, Throwable throwable) {
-        StringBuilder sb = new StringBuilder(256);
-        sb.append(stamp.format(new Date()))
-          .append(' ').append(level)
-          .append(" [").append(tag).append("] ")
-          .append(message == null ? "" : message);
-        if (throwable != null) {
-            sb.append("\n  ");
-            sb.append(throwable.getClass().getName());
-            if (throwable.getMessage() != null) {
-                sb.append(": ").append(throwable.getMessage());
-            }
-            StackTraceElement[] stack = throwable.getStackTrace();
-            for (int i = 0; i < stack.length && i < 24; i++) {
-                sb.append("\n    at ").append(stack[i]);
-            }
-        }
-        return sb.toString();
-    }
-
-    private static void flush() {
-        synchronized (lock) {
-            try {
-                if (writer != null) {
-                    writer.flush();
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-    }
-
-    /** For diagnostics: the absolute path of the log file, or null before install. */
     public static String getPath() {
         return file != null ? file.getAbsolutePath() : null;
     }
 
     public static boolean isActive() {
-        return !failed.get() && file != null;
+        return !disabled && file != null;
     }
 
-    @SuppressWarnings("unused")
-    private static void noop() {
-        // keeps Process imported for future ANR/pid stamping
-        Process.myPid();
+    // ----------------------------------------------------------------- engine
+
+    private static void write(String level, String tag, String message, Throwable throwable) {
+        if (disabled || file == null) {
+            return;
+        }
+        final String line = format(level, tag, message, throwable);
+        synchronized (lock) {
+            try {
+                if (written > MAX_SIZE) {
+                    trim();
+                }
+                if (writer == null) {
+                    writer = new OutputStreamWriter(new FileOutputStream(file, true));
+                }
+                writer.write(line);
+                writer.write('\n');
+                writer.flush();
+                written += line.length() + 1;
+            } catch (Throwable t) {
+                // never let logging throw into the caller, and never retry
+                disabled = true;
+                closeQuietly();
+            }
+        }
+    }
+
+    /** Keeps only the newest half of the file, starting at a line boundary. */
+    private static void trim() throws Exception {
+        closeQuietly();
+        File tmp = new File(file.getParentFile(), FILE_NAME + ".tmp");
+        try (RandomAccessFile in = new RandomAccessFile(file, "r");
+             FileOutputStream out = new FileOutputStream(tmp)) {
+            long length = in.length();
+            in.seek(length / 2);
+            while (in.getFilePointer() < length && in.read() != '\n') {
+                // advance to the next line boundary so the kept half starts clean
+            }
+            byte[] buf = new byte[8192];
+            int read;
+            while ((read = in.read(buf)) > 0) {
+                out.write(buf, 0, read);
+            }
+        }
+        if (tmp.renameTo(file)) {
+            written = file.length();
+        } else {
+            //noinspection ResultOfMethodCallIgnored
+            tmp.delete();
+            written = 0;
+        }
+    }
+
+    private static void closeQuietly() {
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (Throwable ignored) {
+            }
+            writer = null;
+        }
+    }
+
+    private static String format(String level, String tag, String message, Throwable throwable) {
+        StringBuilder sb = new StringBuilder(256);
+        synchronized (stamp) { // SimpleDateFormat is not thread-safe
+            sb.append(stamp.format(new Date()));
+        }
+        sb.append(' ').append(level)
+          .append(" [").append(tag).append("] ")
+          .append(message == null ? "" : message);
+        Throwable t = throwable;
+        int depth = 0;
+        while (t != null && depth < 4) {
+            sb.append(depth == 0 ? "\n  " : "\n  caused by ");
+            sb.append(t.getClass().getName());
+            if (t.getMessage() != null) {
+                sb.append(": ").append(t.getMessage());
+            }
+            StackTraceElement[] stack = t.getStackTrace();
+            for (int i = 0; i < stack.length && i < 24; i++) {
+                sb.append("\n    at ").append(stack[i]);
+            }
+            Throwable cause = t.getCause();
+            t = cause == t ? null : cause;
+            depth++;
+        }
+        return sb.toString();
     }
 }

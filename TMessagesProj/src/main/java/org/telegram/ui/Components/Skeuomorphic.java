@@ -115,6 +115,11 @@ public final class Skeuomorphic {
         return resourcesProvider != null ? resourcesProvider.isDark() : Theme.isCurrentThemeDark();
     }
 
+    /** For call sites with no ResourcesProvider in scope. */
+    public static boolean isDark() {
+        return Theme.isCurrentThemeDark();
+    }
+
     // ------------------------------------------------------------------- raised
 
     /**

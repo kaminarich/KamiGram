@@ -75,6 +75,8 @@ public class NotificationCenter {
     public static final int privacyRulesUpdated = totalEvents++;
     public static final int updateMessageMedia = totalEvents++;
     public static final int replaceMessagesObjects = totalEvents++;
+    /** Extraordikami: messages were deleted server-side but kept locally. */
+    public static final int kamiMessagesKeptDeleted = totalEvents++;
     public static final int didSetPasscode = totalEvents++;
     public static final int passcodeDismissed = totalEvents++;
     public static final int twoStepPasswordChanged = totalEvents++;
