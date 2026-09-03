@@ -1,4 +1,4 @@
-# ⚡ KamiGram
+## KamiGram
 
 KamiGram is a third-party Telegram client with a skeuomorphic pastel design and the Extraordikami feature set — deleted messages stay visible, profile IDs are always shown, and every crash lands in `kamigram.log`.
 
