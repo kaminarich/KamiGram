@@ -624,6 +624,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
     private int chatRow;
     private int filtersRow;
     private int liteModeRow;
+    private int kamiExtraRow;
     private int stickersRow;
     private int devicesRow;
     private int devicesSectionRow;
@@ -4435,6 +4436,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 presentFragment(new PrivacySettingsActivity().setCurrentPassword(currentPassword));
             } else if (position == dataRow) {
                 presentFragment(new DataSettingsActivity());
+            } else if (position == kamiExtraRow) {
+                presentFragment(new com.kaminari.gram.ui.ExtraordiKamiActivity());
             } else if (position == chatRow) {
                 presentFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));
             } else if (position == filtersRow) {
@@ -10287,6 +10290,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
         chatRow = -1;
         filtersRow = -1;
         liteModeRow = -1;
+    kamiExtraRow = -1;
         stickersRow = -1;
         devicesRow = -1;
         devicesSectionRow = -1;
@@ -10446,6 +10450,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 privacyRow = rowCount++;
                 notificationRow = rowCount++;
                 dataRow = rowCount++;
+                kamiExtraRow = rowCount++;
                 liteModeRow = rowCount++;
 //                stickersRow = rowCount++;
                 if (getMessagesController().filtersEnabled || !getMessagesController().dialogFilters.isEmpty()) {
@@ -13595,6 +13600,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                         textCell.setTextAndIcon(LocaleController.getString(R.string.PrivacySettings), R.drawable.msg2_secret, true);
                     } else if (position == dataRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.DataSettings), R.drawable.msg2_data, true);
+                    } else if (position == kamiExtraRow) {
+                        textCell.setTextAndIcon("Extraordikami", R.drawable.msg2_secret, true);
                     } else if (position == chatRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.ChatSettings), R.drawable.msg2_discussion, true);
                     } else if (position == filtersRow) {
