@@ -23,3 +23,7 @@ agconnect-services.json
 *.keystore
 build.log
 buildfull.log
+
+# python bytecode from the palette tooling
+__pycache__/
+*.pyc

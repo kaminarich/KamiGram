@@ -72,149 +72,189 @@ def rehue(h, target, amount):
 
 # --------------------------------------------------------------------- anchors
 
-H_CREAM = 38 / 360.0
-H_SKY = 199 / 360.0
-H_MINT = 128 / 360.0
+# KamiGram anchors. No brown, no cream: light mode is white + pastel blue with
+# orange reserved for alerts/mentions; dark mode is cool slate, never warm.
+H_SKY = 203 / 360.0      # pastel blue, the primary accent family
+H_SLATE = 212 / 360.0    # dark-mode surface hue
+H_ORANGE = 28 / 360.0    # warm accent, used sparingly
 
 # The KamiGram core. Light and dark are authored as a pair so every surface has
 # a matching counterpart and no key silently falls through to the generic tail.
 CORE = {
-    # ---- global surfaces ---------------------------------------------- light / dark
-    "windowBackgroundWhite":              (0xFFFAF7F2, 0xFF23201C),
-    "windowBackgroundGray":               (0xFFF0EAE0, 0xFF191714),
-    "windowBackgroundGrayShadow":         (0xFFDCD3C4, 0xFF100E0C),
-    "windowBackgroundUnchecked":          (0xFFB9AE9C, 0xFF5A5348),
-    "windowBackgroundChecked":            (0xFF8EC9E8, 0xFF5E93AF),
-    "windowBackgroundCheckText":          (0xFFFFFFFF, 0xFF15130F),
-    "divider":                            (0xFFE3DACA, 0xFF2E2A25),
-    "graySection":                        (0xFFF2EDE4, 0xFF1F1C19),
-    "graySectionText":                    (0xFF70695E, 0xFF9A9186),
+    # ================================================================ SURFACES
+    # Light: white page, pastel-blue tinted cards, no cream or beige anywhere.
+    # Dark:  cool slate, never warm. Each tier is separated enough to read as a
+    #        distinct physical layer under the bevel treatment.
+    #                                       light        dark
+    "windowBackgroundWhite":              (0xFFFFFFFF, 0xFF22262B),
+    "windowBackgroundGray":               (0xFFEDF2F7, 0xFF15181B),
+    "windowBackgroundGrayShadow":         (0xFFC9D6E2, 0xFF0B0D0F),
+    "windowBackgroundUnchecked":          (0xFFAAB7C4, 0xFF4B555F),
+    "windowBackgroundChecked":            (0xFF4589AD, 0xFF3A6B85),
+    "windowBackgroundCheckText":          (0xFFFFFFFF, 0xFFFFFFFF),
+    "divider":                            (0xFFDCE5EE, 0xFF2E343A),
+    "graySection":                        (0xFFE7EEF5, 0xFF1A1E22),
+    "graySectionText":                    (0xFF5F6E7D, 0xFFA3AFBB),
     "listSelectorSDK21":                  (0x14000000, 0x14FFFFFF),
-    "dialogBackground":                   (0xFFFAF7F2, 0xFF23201C),
-    "dialogBackgroundGray":               (0xFFF2EDE4, 0xFF1B1815),
-    "dialogTextBlack":                    (0xFF4A4A55, 0xFFEDE7DD),
-    "dialogTextGray2":                    (0xFF766E62, 0xFFA39A8E),
-    "dialogGrayLine":                     (0xFFE3DACA, 0xFF302C27),
-    "dialogShadowLine":                   (0x12000000, 0x24000000),
-    "dialogCardShadow":                   (0x17000000, 0x2E000000),
-    "sheet_scrollUp":                     (0xFFD9CFBE, 0xFF453F37),
-    "table_background":                   (0xFFF7F2E9, 0xFF201D19),
-    "table_border":                       (0xFFE6DED0, 0xFF322D27),
-    # ---- action bar ---------------------------------------------------
-    "actionBarDefault":                   (0xFFFAF7F2, 0xFF201D19),
-    "actionBarDefaultIcon":               (0xFF4A4A55, 0xFFEDE7DD),
-    "actionBarDefaultTitle":              (0xFF4A4A55, 0xFFEDE7DD),
-    "actionBarDefaultSubtitle":           (0xFF766E62, 0xFFA39A8E),
+    "dialogBackground":                   (0xFFFFFFFF, 0xFF22262B),
+    "dialogBackgroundGray":               (0xFFEDF2F7, 0xFF1A1E22),
+    "dialogTextBlack":                    (0xFF2C3742, 0xFFE6EBF0),
+    "dialogTextGray2":                    (0xFF5F6E7D, 0xFFA3AFBB),
+    "dialogGrayLine":                     (0xFFDCE5EE, 0xFF2E343A),
+    "dialogShadowLine":                   (0x14000000, 0x33000000),
+    "dialogCardShadow":                   (0x1F000000, 0x40000000),
+    "sheet_scrollUp":                     (0xFFC9D6E2, 0xFF454E57),
+    "table_background":                   (0xFFF5F9FC, 0xFF1E2226),
+    "table_border":                       (0xFFDCE5EE, 0xFF2E343A),
+
+    # ============================================================== ACTION BAR
+    "actionBarDefault":                   (0xFFFFFFFF, 0xFF1E2226),
+    "actionBarDefaultIcon":               (0xFF2C3742, 0xFFE6EBF0),
+    "actionBarDefaultTitle":              (0xFF2C3742, 0xFFE6EBF0),
+    "actionBarDefaultSubtitle":           (0xFF5F6E7D, 0xFFA3AFBB),
     "actionBarDefaultSelector":           (0x14000000, 0x1AFFFFFF),
     "actionBarWhiteSelector":             (0x14000000, 0x1AFFFFFF),
-    "actionBarDefaultSearch":             (0xFF4A4A55, 0xFFEDE7DD),
-    "actionBarDefaultSearchPlaceholder":  (0xFF8A8172, 0xFF9A9186),
-    "actionBarActionModeDefault":         (0xFFFAF7F2, 0xFF201D19),
-    "actionBarActionModeDefaultTop":      (0x10000000, 0x28000000),
-    "actionBarActionModeDefaultIcon":     (0xFF4A4A55, 0xFFEDE7DD),
-    "actionBarBrowser":                   (0xFFFAF7F2, 0xFF201D19),
-    # ---- accent -------------------------------------------------------
-    "telegram_color":                     (0xFF8EC9E8, 0xFF7FB4D2),
-    "telegram_color_text":                (0xFF5E93AF, 0xFF9CCAE4),
-    "featuredStickers_addButton":         (0xFF8EC9E8, 0xFF6FA3C0),
-    "featuredStickers_addButtonPressed":  (0xFF7FB4D2, 0xFF5E8FA9),
-    "featuredStickers_buttonText":        (0xFFFFFFFF, 0xFF14120F),
-    "switchTrack":                        (0xFFCFC5B4, 0xFF4A443C),
-    "switchTrackChecked":                 (0xFF8EC9E8, 0xFF6FA3C0),
-    "switchTrackBlue":                    (0xFFCFC5B4, 0xFF4A443C),
-    "switchTrackBlueChecked":             (0xFF8EC9E8, 0xFF6FA3C0),
-    "switch2Track":                       (0xFFE49A9A, 0xFFA86A6A),
-    "switch2TrackChecked":                (0xFF8EC9E8, 0xFF6FA3C0),
-    "radioBackground":                    (0xFFC2B8A6, 0xFF5A5348),
-    "radioBackgroundChecked":             (0xFF8EC9E8, 0xFF7FB4D2),
-    "checkbox":                           (0xFF8EC9E8, 0xFF6FA3C0),
-    "checkboxCheck":                      (0xFFFFFFFF, 0xFF14120F),
-    "progressCircle":                     (0xFF8EC9E8, 0xFF7FB4D2),
-    "dialogFloatingButton":               (0xFF8EC9E8, 0xFF6FA3C0),
-    "dialogFloatingIcon":                 (0xFFFFFFFF, 0xFF14120F),
-    "chats_actionBackground":             (0xFF9BC8E4, 0xFF6FA3C0),
-    "chats_actionPressedBackground":      (0xFF87B8D6, 0xFF5E8FA9),
-    "chats_actionIcon":                   (0xFFFFFFFF, 0xFF14120F),
-    # ---- text ---------------------------------------------------------
-    "windowBackgroundWhiteBlackText":     (0xFF4A4A55, 0xFFEDE7DD),
-    "windowBackgroundWhiteGrayText":      (0xFF766E62, 0xFFA39A8E),
-    "windowBackgroundWhiteGrayText2":     (0xFF766D5F, 0xFF968D82),
-    "windowBackgroundWhiteHintText":      (0xFF8A8172, 0xFF9A9186),
-    "windowBackgroundWhiteValueText":     (0xFF5E93AF, 0xFF9CCAE4),
-    "windowBackgroundWhiteLinkText":      (0xFF4785A6, 0xFF9CCAE4),
-    "windowBackgroundWhiteBlueText":      (0xFF4785A6, 0xFF9CCAE4),
-    "windowBackgroundWhiteRedText":       (0xFFC46A6A, 0xFFE09B9B),
-    "windowBackgroundWhiteGreenText":     (0xFF63996B, 0xFF9BC9A2),
-    "text_RedRegular":                    (0xFFC46A6A, 0xFFE09B9B),
-    "text_RedBold":                       (0xFFB35C5C, 0xFFE8A9A9),
-    "fill_RedNormal":                     (0xFFDD8A8A, 0xFFB86E6E),
-    # ---- chat list ----------------------------------------------------
-    "chats_name":                         (0xFF4A4A55, 0xFFEDE7DD),
-    "chats_nameMessage":                  (0xFF5E93AF, 0xFF9CCAE4),
-    "chats_message":                      (0xFF766E62, 0xFFA39A8E),
-    "chats_date":                         (0xFF8A8172, 0xFF9A9186),
-    "chats_unreadCounter":                (0xFF8EC9E8, 0xFF3F6B84),
-    "chats_unreadCounterMuted":           (0xFFC9C0B0, 0xFF413B34),
-    "chats_unreadCounterText":            (0xFF2E4756, 0xFFEDE7DD),
-    "chats_sentCheck":                    (0xFF6FB07A, 0xFF8CC496),
-    "chats_sentReadCheck":                (0xFF6FB07A, 0xFF8CC496),
-    "chats_sentClock":                    (0xFF8A8172, 0xFF9A9186),
-    "chats_sentError":                    (0xFFDD8A8A, 0xFFB86E6E),
-    "chats_sentErrorIcon":                (0xFFFFFFFF, 0xFF14120F),
-    "chats_menuBackground":               (0xFFFAF7F2, 0xFF23201C),
-    "chats_pinnedIcon":                   (0xFFB4AC9E, 0xFF8C8478),
-    "chats_pinnedOverlay":                (0x08000000, 0x14FFFFFF),
+    "actionBarDefaultSearch":             (0xFF2C3742, 0xFFE6EBF0),
+    "actionBarDefaultSearchPlaceholder":  (0xFF6F7B89, 0xFF8A96A2),
+    "actionBarActionModeDefault":         (0xFFFFFFFF, 0xFF1E2226),
+    "actionBarActionModeDefaultTop":      (0x14000000, 0x33000000),
+    "actionBarActionModeDefaultIcon":     (0xFF2C3742, 0xFFE6EBF0),
+    "actionBarBrowser":                   (0xFFFFFFFF, 0xFF1E2226),
+    "actionBarDefaultSubmenuBackground":  (0xFFFFFFFF, 0xFF262B31),
+    "actionBarDefaultSubmenuItem":        (0xFF2C3742, 0xFFE6EBF0),
+    "actionBarDefaultSubmenuItemIcon":    (0xFF4A5A69, 0xFFA3AFBB),
+
+    # ================================================================== ACCENT
+    # One accent family: pastel blue. Fills that carry white glyphs are darker
+    # than the tints used for large areas, so white always clears 4.5.
+    "telegram_color":                     (0xFF3F7A9B, 0xFF7FBBDD),
+    "telegram_color_text":                (0xFF2F6B8A, 0xFF8CC6E8),
+    "featuredStickers_addButton":         (0xFF3F7A9B, 0xFF3A6B85),
+    "featuredStickers_addButtonPressed":  (0xFF39708F, 0xFF35617A),
+    "featuredStickers_buttonText":        (0xFFFFFFFF, 0xFFFFFFFF),
+    "switchTrack":                        (0xFFC0CDD9, 0xFF454E57),
+    "switchTrackChecked":                 (0xFF4589AD, 0xFF5C9CC0),
+    "switchTrackBlue":                    (0xFFC0CDD9, 0xFF454E57),
+    "switchTrackBlueChecked":             (0xFF4589AD, 0xFF5C9CC0),
+    "switch2Track":                       (0xFFD98C7E, 0xFF9E5F52),
+    "switch2TrackChecked":                (0xFF4589AD, 0xFF5C9CC0),
+    "radioBackground":                    (0xFFAAB7C4, 0xFF5B646E),
+    "radioBackgroundChecked":             (0xFF3F7A9B, 0xFF7FBBDD),
+    "checkbox":                           (0xFF3F7A9B, 0xFF3A6B85),
+    "checkboxCheck":                      (0xFFFFFFFF, 0xFFFFFFFF),
+    "progressCircle":                     (0xFF3F7A9B, 0xFF7FBBDD),
+    "dialogFloatingButton":               (0xFF3F7A9B, 0xFF3A6B85),
+    "dialogFloatingIcon":                 (0xFFFFFFFF, 0xFFFFFFFF),
+    "chats_actionBackground":             (0xFF3F7A9B, 0xFF3A6B85),
+    "chats_actionPressedBackground":      (0xFF39708F, 0xFF35617A),
+    "chats_actionIcon":                   (0xFFFFFFFF, 0xFFFFFFFF),
+
+    # ==================================================================== TEXT
+    "windowBackgroundWhiteBlackText":     (0xFF2C3742, 0xFFE6EBF0),
+    "windowBackgroundWhiteGrayText":      (0xFF5F6E7D, 0xFFA3AFBB),
+    "windowBackgroundWhiteGrayText2":     (0xFF667585, 0xFF97A3AF),
+    "windowBackgroundWhiteHintText":      (0xFF6F7B89, 0xFF8A96A2),
+    "windowBackgroundWhiteValueText":     (0xFF2F6B8A, 0xFF8CC6E8),
+    "windowBackgroundWhiteLinkText":      (0xFF2F6B8A, 0xFF8CC6E8),
+    "windowBackgroundWhiteBlueText":      (0xFF2F6B8A, 0xFF8CC6E8),
+    "windowBackgroundWhiteRedText":       (0xFFB4483F, 0xFFE49189),
+    "windowBackgroundWhiteGreenText":     (0xFF3F7A50, 0xFF8CC49B),
+    "text_RedRegular":                    (0xFFB4483F, 0xFFE49189),
+    "text_RedBold":                       (0xFFA33F37, 0xFFEC9F97),
+    "fill_RedNormal":                     (0xFFB4483F, 0xFF8E4E46),
+
+    # =============================================================== CHAT LIST
+    "chats_name":                         (0xFF2C3742, 0xFFE6EBF0),
+    "chats_nameMessage":                  (0xFF2F6B8A, 0xFF8CC6E8),
+    "chats_message":                      (0xFF5F6E7D, 0xFFA3AFBB),
+    "chats_date":                         (0xFF6F7B89, 0xFF8A96A2),
+    # Badge is a saturated fill with WHITE text: no ambiguity against the
+    # bubble beside it, and clearly distinct from the muted/mention variants.
+    "chats_unreadCounter":                (0xFF3F7A9B, 0xFF3A6B85),
+    "chats_unreadCounterMuted":           (0xFF6E7C8A, 0xFF3E464E),
+    "chats_unreadCounterText":            (0xFFFFFFFF, 0xFFFFFFFF),
+    "chats_sentCheck":                    (0xFF3F7A50, 0xFF7FC08E),
+    "chats_sentReadCheck":                (0xFF3F7A50, 0xFF7FC08E),
+    "chats_sentClock":                    (0xFF6F7B89, 0xFF8A96A2),
+    "chats_sentError":                    (0xFFB4483F, 0xFF8E4E46),
+    "chats_sentErrorIcon":                (0xFFFFFFFF, 0xFFFFFFFF),
+    "chats_menuBackground":               (0xFFFFFFFF, 0xFF22262B),
+    "chats_pinnedIcon":                   (0xFF8A95A2, 0xFF8A96A2),
+    "chats_pinnedOverlay":                (0x0A000000, 0x14FFFFFF),
     "chats_tabletSelectedOverlay":        (0x14000000, 0x1AFFFFFF),
-    "chats_tabUnreadActiveBackground":    (0xFF8EC9E8, 0xFF3F6B84),
-    "chats_tabUnreadUnactiveBackground":  (0xFFC9C0B0, 0xFF413B34),
-    "topics_unreadCounter":               (0xFF8EC9E8, 0xFF3F6B84),
-    "topics_unreadCounterMuted":          (0xFFC9C0B0, 0xFF413B34),
-    # ---- bubbles ------------------------------------------------------
-    "chat_inBubble":                      (0xFFFDFAF4, 0xFF2B2823),
-    "chat_inBubbleSelected":              (0xFFF3ECE1, 0xFF3A362F),
-    "chat_inBubbleShadow":                (0xFF9D8F7D, 0xFF000000),
-    "chat_outBubble":                     (0xFFE3F2DF, 0xFF2F3A2E),
-    "chat_outBubbleSelected":             (0xFFD4E8CF, 0xFF3C4A3A),
-    "chat_outBubbleShadow":               (0xFF7E8F79, 0xFF000000),
-    "chat_messageTextIn":                 (0xFF3D3D46, 0xFFEDE7DD),
-    "chat_messageTextOut":                (0xFF2E4231, 0xFFDCE9D9),
-    "chat_inTimeText":                     (0xFF8E8576, 0xFF9A9186),
-    "chat_outTimeText":                    (0xFF61805F, 0xFF9AB09C),
-    "chat_inMediaIcon":                   (0xFFFDFAF4, 0xFF2B2823),
-    "chat_outMediaIcon":                  (0xFFE3F2DF, 0xFF2F3A2E),
-    "chat_outSentCheck":                  (0xFF57A86B, 0xFF8CC496),
-    "chat_outSentCheckRead":              (0xFF57A86B, 0xFF8CC496),
-    "chat_wallpaper":                     (0xFFF3EAD9, 0xFF17150F),
-    "chat_wallpaper_gradient_to1":        (0xFFE9DCE8, 0xFF1B1720),
-    "chat_serviceText":                   (0xFFFFFFFF, 0xFFEDE7DD),
-    "chat_serviceIcon":                   (0xFFFFFFFF, 0xFFEDE7DD),
-    # ---- composer -----------------------------------------------------
-    "chat_messagePanelBackground":        (0xFFFDFAF4, 0xFF201D19),
-    "chat_messagePanelText":              (0xFF3D3D46, 0xFFEDE7DD),
-    "chat_messagePanelHint":              (0xFF8A8172, 0xFF9A9186),
-    "chat_messagePanelCursor":            (0xFF8EC9E8, 0xFF7FB4D2),
-    "chat_messagePanelIcons":             (0xFF9A9182, 0xFF9A9186),
-    "chat_messagePanelSend":              (0xFF8EC9E8, 0xFF7FB4D2),
-    "chat_messagePanelVoicePressed":      (0xFFFFFFFF, 0xFF14120F),
-    "chat_messagePanelVoiceBackground":   (0xFF8EC9E8, 0xFF6FA3C0),
-    "chat_emojiPanelBackground":          (0xFFF5EFE4, 0xFF1D1A17),
-    "chat_emojiSearchBackground":         (0xFFEAE2D4, 0xFF2A2622),
-    "chat_emojiPanelIcon":                (0xFF9A9182, 0xFF8C8478),
-    "chat_emojiPanelIconSelected":        (0xFF5E93AF, 0xFF9CCAE4),
-    "chat_emojiPanelStickerPackSelector": (0xFFE8E0D2, 0xFF2A2622),
-    "chat_topPanelBackground":            (0xFFFDFAF4, 0xFF201D19),
-    "chat_replyPanelLine":                (0xFFE6DED0, 0xFF322D27),
-    "chat_goDownButton":                  (0xFFFDFAF4, 0xFF2B2823),
-    "chat_goDownButtonIcon":              (0xFF6E665A, 0xFFC9C1B5),
-    "chat_goDownButtonCounterBackground": (0xFF8EC9E8, 0xFF3F6B84),
-    # ---- bottom nav (glass package, restyled as raised plate) ---------
-    "glass_targetMainTabs":               (0xFFFDFAF4, 0xFF262220),
-    "glass_targetMainTopPanel":           (0xFFFDFAF4, 0xFF262220),
-    "glass_tabSelected":                  (0xFF5E93AF, 0xFF9CCAE4),
-    "glass_tabSelectedText":              (0xFF4A7B95, 0xFFB4D6E9),
-    "glass_tabUnselected":                (0xFF7E7566, 0xFF9A9186),
-    "glass_defaultIcon":                  (0xCC6E665A, 0xCCC9C1B5),
-    "glass_defaultText":                  (0xCC6E665A, 0xCCC9C1B5),
+    "chats_tabUnreadActiveBackground":    (0xFF3F7A9B, 0xFF3A6B85),
+    "chats_tabUnreadUnactiveBackground":  (0xFF6E7C8A, 0xFF3E464E),
+    "topics_unreadCounter":               (0xFF3F7A9B, 0xFF3A6B85),
+    "topics_unreadCounterMuted":          (0xFF6E7C8A, 0xFF3E464E),
+    # mention/reaction pills use the orange accent so they never read as the
+    # unread counter at a glance
+    "chats_mentionIcon":                  (0xFFFFFFFF, 0xFFFFFFFF),
+    "chats_archiveBackground":            (0xFF3F7A9B, 0xFF3A6B85),
+    "chats_archivePinBackground":         (0xFF6E7C8A, 0xFF3E464E),
+    "chats_archiveIcon":                  (0xFFFFFFFF, 0xFFFFFFFF),
+    "chats_archiveText":                  (0xFFFFFFFF, 0xFFFFFFFF),
+
+    # ================================================================= BUBBLES
+    # In-bubble is white, out-bubble is a pastel blue tint: same family as the
+    # accent, clearly lighter than any badge fill.
+    "chat_inBubble":                      (0xFFFFFFFF, 0xFF262B31),
+    "chat_inBubbleSelected":              (0xFFE7EEF5, 0xFF32383F),
+    "chat_inBubbleShadow":                (0xFF8494A5, 0xFF000000),
+    "chat_outBubble":                     (0xFFD7EAF7, 0xFF2C3A45),
+    "chat_outBubbleSelected":             (0xFFC5DFF1, 0xFF374754),
+    "chat_outBubbleShadow":               (0xFF6E8496, 0xFF000000),
+    "chat_messageTextIn":                 (0xFF2C3742, 0xFFE6EBF0),
+    "chat_messageTextOut":                (0xFF23323D, 0xFFE6EBF0),
+    "chat_inTimeText":                     (0xFF6F7B89, 0xFF8A96A2),
+    "chat_outTimeText":                    (0xFF546878, 0xFF9BAAB8),
+    "chat_inMediaIcon":                   (0xFFFFFFFF, 0xFF262B31),
+    "chat_outMediaIcon":                  (0xFFD7EAF7, 0xFF2C3A45),
+    "chat_outSentCheck":                  (0xFF3F7A50, 0xFF7FC08E),
+    "chat_outSentCheckRead":              (0xFF3F7A50, 0xFF7FC08E),
+    "chat_outSentCheckSelected":          (0xFF376B46, 0xFF8CC49B),
+    # wallpaper: pale blue wash, no cream
+    "chat_wallpaper":                     (0xFFEAF2F9, 0xFF12151A),
+    "chat_wallpaper_gradient_to1":        (0xFFDDEAF5, 0xFF171B21),
+    "chat_serviceText":                   (0xFFFFFFFF, 0xFFE6EBF0),
+    "chat_serviceIcon":                   (0xFFFFFFFF, 0xFFE6EBF0),
+
+    # ================================================================ COMPOSER
+    "chat_messagePanelBackground":        (0xFFFFFFFF, 0xFF1E2226),
+    "chat_messagePanelText":              (0xFF2C3742, 0xFFE6EBF0),
+    "chat_messagePanelHint":              (0xFF6F7B89, 0xFF8A96A2),
+    "chat_messagePanelCursor":            (0xFF3F7A9B, 0xFF7FBBDD),
+    "chat_messagePanelIcons":             (0xFF667585, 0xFF97A3AF),
+    "chat_messagePanelSend":              (0xFF3F7A9B, 0xFF7FBBDD),
+    "chat_messagePanelVoicePressed":      (0xFFFFFFFF, 0xFFFFFFFF),
+    "chat_messagePanelVoiceBackground":   (0xFF3F7A9B, 0xFF3A6B85),
+    "chat_emojiPanelBackground":          (0xFFF5F9FC, 0xFF1A1E22),
+    "chat_emojiSearchBackground":         (0xFFE7EEF5, 0xFF262B31),
+    "chat_emojiPanelIcon":                (0xFF667585, 0xFF8A96A2),
+    "chat_emojiPanelIconSelected":        (0xFF2F6B8A, 0xFF8CC6E8),
+    "chat_emojiPanelStickerPackSelector": (0xFFE7EEF5, 0xFF262B31),
+    "chat_topPanelBackground":            (0xFFFFFFFF, 0xFF1E2226),
+    "chat_topPanelTitle":                 (0xFF2F6B8A, 0xFF8CC6E8),
+    "chat_replyPanelLine":                (0xFFDCE5EE, 0xFF2E343A),
+    "chat_goDownButton":                  (0xFFFFFFFF, 0xFF262B31),
+    "chat_goDownButtonIcon":              (0xFF4A5A69, 0xFFA3AFBB),
+    "chat_goDownButtonCounterBackground": (0xFF3F7A9B, 0xFF3A6B85),
+
+    # ============================================ bottom nav / floating plates
+    "glass_targetMainTabs":               (0xFFFFFFFF, 0xFF262B31),
+    "glass_targetMainTopPanel":           (0xFFFFFFFF, 0xFF262B31),
+    "glass_tabSelected":                  (0xFF2F6B8A, 0xFF8CC6E8),
+    "glass_tabSelectedText":              (0xFF2C6280, 0xFF9FD1EC),
+    "glass_tabUnselected":                (0xFF6F7B89, 0xFF8A96A2),
+    "glass_defaultIcon":                  (0xCC4A5A69, 0xCCA3AFBB),
+    "glass_defaultText":                  (0xCC4A5A69, 0xCCA3AFBB),
+
+    # ================================================================== ORANGE
+    # Reserved for warm signals so they never collide with the blue accent.
+    "chat_attachContactText":             (0xFFB86518, 0xFFF0A961),
+    "chat_replyPanelName":                (0xFF2F6B8A, 0xFF8CC6E8),
+    "undo_background":                    (0xFF2C3742, 0xFF313941),
+    "undo_cancelColor":                   (0xFF8CC6E8, 0xFF8CC6E8),
+    "undo_infoColor":                     (0xFFFFFFFF, 0xFFE6EBF0),
 }
 
 # The seven-colour avatar wheel, hue identity preserved so users still recognise
@@ -226,15 +266,21 @@ CORE = {
 # dark-mode wheel is held near L=0.31 so cream initials clear 4.5 on every hue.
 #
 # Layout: (light_fill, light_gradient2), (dark_fill, dark_gradient2)
+# Seven-hue avatar wheel. Each keeps its hue identity (users recognise "the
+# green one") but all are now clean pastels that sit on white or slate without
+# muddiness. Red and orange are kept bright and peachy, never tan or brown.
+# Dark-mode fills are desaturated further and held near L=0.28 so cream initials
+# clear 4.5 on every hue.
 AVATAR_WHEEL = {
-    "Red":    ((0xFFE9A79B, 0xFFD98C7E), (0xFF674237, 0xFF53342B)),
-    "Orange": ((0xFFF0C89A, 0xFFE0AC76), (0xFF6B5133, 0xFF56402A)),
-    "Violet": ((0xFFC8B6EC, 0xFFA694DC), (0xFF463B63, 0xFF382F4F)),
-    "Green":  ((0xFFB4D9A4, 0xFF94C489), (0xFF465F3F, 0xFF384C33)),
-    "Cyan":   ((0xFF9FD3E2, 0xFF7FB8CE), (0xFF3B5863, 0xFF2F464F)),
-    "Blue":   ((0xFFA6C9EA, 0xFF85AEDA), (0xFF3C5262, 0xFF30424F)),
-    "Pink":   ((0xFFEFB2C6, 0xFFDC93AC), (0xFF643A48, 0xFF502E39)),
+    "Red":    ((0xFFF5B3B3, 0xFFE89B9B), (0xFF6B4A4A, 0xFF573B3B)),
+    "Orange": ((0xFFFFD1A3, 0xFFFFC68A), (0xFF6B5338, 0xFF57422D)),
+    "Violet": ((0xFFD4C6F0, 0xFFBEADE6), (0xFF4F436B, 0xFF3F3656)),
+    "Green":  ((0xFFB8E5B0, 0xFFA3D999), (0xFF476B3F, 0xFF395733)),
+    "Cyan":   ((0xFFAFD9E8, 0xFF96CDE0), (0xFF3F5F6B, 0xFF334D57)),
+    "Blue":   ((0xFFB3CEF0, 0xFF9EBFE8), (0xFF3F536B, 0xFF334356)),
+    "Pink":   ((0xFFF5C6D9, 0xFFE8ADCB), (0xFF6B435A, 0xFF573648)),
 }
+
 
 AVATAR_INK = (0xFF2B3640, 0xFFEDE7DD)
 
@@ -266,6 +312,20 @@ def _avatar_core():
 
 
 CORE.update(_avatar_core())
+
+# ---- explicit de-muddying -----------------------------------------------------
+# These five upstream keys land in the beige/tan wedge. Archived and gray avatars
+# become cool slate; the orange name and code token keep hue but push saturation
+# high enough to read as orange rather than brown; the sticker hint panel becomes
+# a pale blue surface.
+CORE.update({
+    "avatar_backgroundArchived":  (0xFFAEBCC9, 0xFF3E464E),
+    "avatar_backgroundGray":      (0xFFA3B2C0, 0xFF3E464E),
+    "avatar_nameInMessageOrange": (0xFFB86518, 0xFFF0A961),
+    "chat_stickersHintPanel":     (0xFFE7EEF5, 0xFF262B31),
+    "code_function":              (0xFF2F6B8A, 0xFF8CC6E8),
+})
+
 
 
 # ------------------------------------------------------------------- protected
@@ -337,19 +397,35 @@ def role_of(key):
 
 # ------------------------------------------------------------------------ tail
 #
-# Conservative: hue is preserved (only greys get an anchor hue), saturation is
-# compressed toward the pastel band, lightness is mapped into the mode's band
-# while keeping the colour's own ordering. Alpha is always preserved.
+# Conservative: hue is preserved for genuinely coloured sources, greys get the
+# mode's anchor hue, saturation is compressed toward the pastel band, and
+# lightness is mapped into the mode's band keeping the source's own ordering.
+#
+# Light mode never produces a warm neutral: any hue that lands in the
+# yellow/brown wedge and is desaturated enough to read as a neutral is pushed to
+# the blue anchor. Dark mode does the same, so no surface ever reads brown.
+# Alpha is always preserved.
 
 BANDS = {
     # role          light (lo, hi, sat_max)   dark (lo, hi, sat_max)
-    "surface":     ((0.88, 0.98, 0.18), (0.11, 0.24, 0.16)),
-    "surface_alt": ((0.83, 0.94, 0.20), (0.14, 0.28, 0.18)),
-    "accent":      ((0.62, 0.82, 0.44), (0.54, 0.74, 0.40)),
-    "link":        ((0.42, 0.60, 0.52), (0.60, 0.78, 0.48)),
-    "ink":         ((0.26, 0.58, 0.32), (0.62, 0.92, 0.28)),
-    "media":       ((0.72, 0.99, 0.14), (0.72, 0.99, 0.14)),
+    "surface":     ((0.91, 0.995, 0.10), (0.09, 0.20, 0.09)),
+    "surface_alt": ((0.86, 0.96, 0.12), (0.12, 0.24, 0.11)),
+    "accent":      ((0.52, 0.72, 0.40), (0.58, 0.78, 0.38)),
+    "link":        ((0.34, 0.52, 0.46), (0.62, 0.80, 0.44)),
+    "ink":         ((0.20, 0.48, 0.24), (0.66, 0.94, 0.20)),
+    "media":       ((0.72, 0.99, 0.10), (0.72, 0.99, 0.10)),
 }
+
+# The warm wedge: yellow through red-orange. Anything in here that is not
+# saturated enough to be a deliberate semantic colour becomes blue instead of
+# beige/brown.
+WARM_LO, WARM_HI = 10 / 360.0, 70 / 360.0
+NEUTRALISE_BELOW_SAT = 0.45
+
+
+def _is_muddy(h, s):
+    """True when a colour would read as beige, tan or brown rather than a hue."""
+    return WARM_LO <= h <= WARM_HI and s < NEUTRALISE_BELOW_SAT
 
 
 def tail_transform(key, argb, dark):
@@ -358,13 +434,19 @@ def tail_transform(key, argb, dark):
     lo, hi, smax = BANDS[role][1 if dark else 0]
     h, l, s = to_hls(r, g, b)
 
-    if s < 0.10:  # grey: give it the mode's anchor warmth
-        h = H_CREAM if role in ("surface", "surface_alt", "ink") else H_SKY
-        s = 0.05 if role in ("surface", "surface_alt") else 0.22
-    else:
-        s = min(smax, s * 0.62 + 0.04)
+    surface_like = role in ("surface", "surface_alt")
 
-    # map the source lightness into the band, preserving relative ordering
+    if s < 0.10:
+        # neutral grey: give it the mode's cool anchor, barely tinted
+        h = H_SLATE if dark else H_SKY
+        s = 0.04 if surface_like else 0.16
+    elif _is_muddy(h, s):
+        # would read brown/beige: rotate to the cool anchor and keep it quiet
+        h = H_SLATE if dark else H_SKY
+        s = min(0.06 if surface_like else 0.22, s)
+    else:
+        s = min(smax, s * 0.58 + 0.03)
+
     l = lo + l * (hi - lo)
     return pack(a, *from_hls(h, l, s))
 

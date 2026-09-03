@@ -1283,6 +1283,23 @@ public class LocaleController {
         return new HashMap<>();
     }
 
+    private void applyKamiGramBranding(HashMap<String, String> map) {
+        // Rewrite Telegram branding to KamiGram for user-visible strings
+        if (map.containsKey("AppName") && map.get("AppName").equals("Telegram")) {
+            map.put("AppName", "KamiGram");
+        }
+        if (map.containsKey("AppNameBeta") && map.get("AppNameBeta").equals("Telegram Beta")) {
+            map.put("AppNameBeta", "KamiGram Beta");
+        }
+        // Also handle any other hardcoded Telegram strings that should be KamiGram
+        if (map.containsKey("TelegramVersion")) {
+            String v = map.get("TelegramVersion");
+            if (v != null && v.contains("Telegram")) {
+                map.put("TelegramVersion", v.replace("Telegram", "KamiGram"));
+            }
+        }
+    }
+
     public int applyLanguage(LocaleInfo localeInfo, boolean override, boolean init, final int currentAccount) {
         return applyLanguage(localeInfo, override, init, false, false, currentAccount, null);
     }
@@ -1352,8 +1369,10 @@ public class LocaleController {
                 localeValues.clear();
             } else if (!fromFile) {
                 localeValues = getLocaleFileStrings(hasBase ? localeInfo.getPathToBaseFile() : localeInfo.getPathToFile());
+                applyKamiGramBranding(localeValues);
                 if (hasBase) {
                     localeValues.putAll(getLocaleFileStrings(localeInfo.getPathToFile()));
+                    applyKamiGramBranding(localeValues);
                 }
             }
             currentLocale = newLocale;
@@ -3105,6 +3124,8 @@ public class LocaleController {
             final HashMap<String, String> valuesToSet = getLocaleFileStrings(hasBase ? localeInfo.getPathToBaseFile() : localeInfo.getPathToFile());
             if (hasBase) {
                 valuesToSet.putAll(getLocaleFileStrings(localeInfo.getPathToFile()));
+                applyKamiGramBranding(valuesToSet);
+                applyKamiGramBranding(valuesToSet);
             }
             FileLog.d("saved locale file to " + finalFile);
             AndroidUtilities.runOnUIThread(() -> {
