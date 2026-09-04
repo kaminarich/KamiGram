@@ -204,6 +204,139 @@ def check_fields_exist(rel, identifiers):
             )
 
 
+def _fork_owns_statement(body, pos):
+    """
+    True when the statement at `pos` is fork-inserted: a fork helper appears on its
+    own line, or on the opening line of one of its enclosing blocks.
+    """
+    def line_at(i):
+        ls = body.rfind("\n", 0, i) + 1
+        le = body.find("\n", i)
+        return body[ls: le if le != -1 else len(body)]
+
+    lines = [line_at(pos)]
+
+    # walk out through enclosing block openers
+    depth, i, levels = 0, pos, 0
+    while i > 0 and levels < 3:
+        c = body[i]
+        if c == "}":
+            depth += 1
+        elif c == "{":
+            if depth == 0:
+                lines.append(line_at(i))
+                levels += 1
+            else:
+                depth -= 1
+        i -= 1
+
+    return any(h + "." in ln for ln in lines for h in FORK_HELPERS)
+
+
+def _enclosing_method(src, pos):
+    """
+    Signature and body span of the method containing `pos`.
+
+    Walks backwards line by line rather than running a DOTALL regex over the file:
+    these sources reach 11k lines and a greedy signature pattern backtracks
+    catastrophically on them.
+    """
+    line_start = src.rfind("\n", 0, pos) + 1
+    sig_re = re.compile(
+        r"^[ \t]{1,8}(?:@\w+\s+)*(?:public|private|protected|static|final|synchronized|native|\s)+"
+        r"[\w<>\[\],.?]+\s+(\w+)\s*\("
+    )
+    while line_start > 0:
+        prev_end = src.rfind("\n", 0, line_start - 1)
+        cur = src[line_start:src.find("\n", line_start)]
+        m = sig_re.match(cur)
+        if m and cur.rstrip().endswith("{"):
+            open_brace = src.index("{", line_start)
+            depth = 0
+            for j in range(open_brace, len(src)):
+                if src[j] == "{":
+                    depth += 1
+                elif src[j] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        return m.group(1), cur, open_brace, j
+            return None
+        line_start = prev_end + 1 if prev_end >= 0 else 0
+        if prev_end < 0:
+            break
+    return None
+
+
+def check_effectively_final(rel):
+    """
+    A method parameter that is assigned, in a method that also contains a lambda,
+    is a compile error: the lambda captures it and captured variables must be
+    effectively final. javac only reports this during flow analysis, so
+    `-proc:only` parses it happily and the mistake survives to the real build -
+    which is exactly how it reached CI once.
+
+    Only methods containing a fork helper call are examined. That is the surface
+    the fork actually edits, and it keeps the check to a few dozen spans instead
+    of every method in the file.
+    """
+    src = read(rel)
+    if not src:
+        return
+    seen = set()
+    for helper in FORK_HELPERS:
+        for m in re.finditer(r"\b" + helper + r"\.\w+\s*\(", src):
+            found = _enclosing_method(src, m.start())
+            if not found:
+                continue
+            name, sig_line, body_start, body_end = found
+            if body_start in seen:
+                continue
+            seen.add(body_start)
+            body = src[body_start:body_end]
+            if "->" not in body:
+                continue  # no lambda: assigning a parameter is legal
+            params = sig_line[sig_line.index("(") + 1: sig_line.rindex(")")]
+            for part in split_args(params):
+                tokens = part.strip().split()
+                if len(tokens) < 2:
+                    continue
+                pname = tokens[-1]
+                if not re.fullmatch(r"\w+", pname):
+                    continue
+                for am in re.finditer(
+                        r"(?<![\w.])" + re.escape(pname) + r"\s*(?:=(?!=)|\+\+|--|\+=|-=)", body):
+                    # Assigning a parameter is legal on its own, and upstream does it
+                    # (prepareSendingMedia assigns groupMedia, then copies it into
+                    # groupMediaFinal - only the copy is captured). It is a compile
+                    # error only when a lambda captures the same name, and deciding
+                    # that reliably needs a real parser, not a regex.
+                    #
+                    # So the rule here is narrower and exact: flag the assignment only
+                    # when it is part of fork-inserted code, detected by a fork helper
+                    # reference within a few lines. That is precisely the mistake this
+                    # check exists for - "I added a line that assigns a parameter in a
+                    # method whose lambdas capture it" - with no false positives on
+                    # upstream code.
+                    # The fork reference must be on the assignment's own line or on
+                    # one of its enclosing block openers - that is what "this
+                    # assignment belongs to fork code" actually means.
+                    #
+                    # Nearby-line proximity is not enough to distinguish the two
+                    # cases: upstream's `groupMedia = false` sits a few lines below a
+                    # KamiConfig call but inside its own `for`/`if`, and is legal
+                    # because only its groupMediaFinal copy is captured. The
+                    # regression this check exists for had the helper in the very
+                    # `if (...)` that guarded the assignment.
+                    if not _fork_owns_statement(body, am.start()):
+                        continue
+                    line = src[:body_start + am.start()].count("\n") + 1
+                    problems.append(
+                        f"{rel}:{line}: fork code assigns parameter '{pname}' of {name}(), "
+                        f"whose lambdas capture it; copy it into a new final local instead"
+                    )
+                    break
+
+
 def check_theme_keys(rels):
     """Every Theme.key_* used by fork code must exist in Theme.java."""
     theme = read("org/telegram/ui/ActionBar/Theme.java")
@@ -270,6 +403,17 @@ TOUCHED_FILES = [
     "org/telegram/messenger/ApplicationLoader.java",
     "org/telegram/messenger/FileLog.java",
     "org/telegram/messenger/LocaleController.java",
+    "org/telegram/messenger/SendMessagesHelper.java",
+    "org/telegram/messenger/MediaController.java",
+    "org/telegram/messenger/FileLoadOperation.java",
+    "org/telegram/messenger/FileUploadOperation.java",
+    "org/telegram/messenger/TranslateController.java",
+    "org/telegram/ui/LoginActivity.java",
+    "org/telegram/ui/PhotoViewer.java",
+    "org/telegram/ui/Components/ChatActivityEnterView.java",
+    "org/telegram/ui/Components/AvatarDrawable.java",
+    "org/telegram/ui/ActionBar/Theme.java",
+    "org/telegram/ui/Cells/TextSelectionHelper.java",
 ]
 
 ALL = FORK_FILES + TOUCHED_FILES
@@ -285,6 +429,9 @@ def main():
     # insertion is covered without editing this script.
     for rel in TOUCHED_FILES:
         check_fields_exist(rel, sorted(referenced_identifiers(read(rel))))
+
+    for rel in TOUCHED_FILES:
+        check_effectively_final(rel)
 
     check_theme_keys(FORK_FILES)
     check_notification_events(ALL)

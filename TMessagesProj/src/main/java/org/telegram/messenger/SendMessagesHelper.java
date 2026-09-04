@@ -9847,7 +9847,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
     }
 
     @UiThread
-    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, boolean forceDocument, boolean groupMedia, MessageObject editingMessageObject, TLRPC.TL_inputPollAnswer pollToAddOptionMessageObject, boolean notify, int scheduleDate, int scheduleRepeatPeriod, int mode, boolean updateStikcersOrder, InputContentInfoCompat inputContent, String quickReplyShortcut, int quickReplyShortcutId, long effectId, boolean invertMedia, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, PollSendParams pollSendParams, boolean forcedPollDoNotSendFinal) {
+    public static void prepareSendingMedia(AccountInstance accountInstance, ArrayList<SendingMediaInfo> media, long dialogId, MessageObject replyToMsg, MessageObject replyToTopMsg, TL_stories.StoryItem storyItem, ChatActivity.ReplyQuote quote, boolean forceDocumentParam, boolean groupMedia, MessageObject editingMessageObject, TLRPC.TL_inputPollAnswer pollToAddOptionMessageObject, boolean notify, int scheduleDate, int scheduleRepeatPeriod, int mode, boolean updateStikcersOrder, InputContentInfoCompat inputContent, String quickReplyShortcut, int quickReplyShortcutId, long effectId, boolean invertMedia, long payStars, long monoForumPeerId, MessageSuggestionParams suggestionParams, PollSendParams pollSendParams, boolean forcedPollDoNotSendFinal) {
         if (media.isEmpty()) {
             return;
         }
@@ -9856,9 +9856,12 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         // only way to defeat Telegram's compression - the media path always
         // transcodes. Editing an existing message keeps the original behaviour,
         // because a media message cannot change type after the fact.
-        if (com.kaminari.gram.KamiConfig.losslessMedia() && editingMessageObject == null) {
-            forceDocument = true;
-        }
+        //
+        // Declared as a new final local rather than assigning the parameter: this
+        // method's lambdas capture it, and a captured parameter must be effectively
+        // final. Same idiom as groupMedia -> groupMediaFinal below.
+        final boolean forceDocument = forceDocumentParam
+                || (com.kaminari.gram.KamiConfig.losslessMedia() && editingMessageObject == null);
         for (int a = 0, N = media.size(); a < N; a++) {
             if (media.get(a).ttl > 0) {
                 groupMedia = false;
