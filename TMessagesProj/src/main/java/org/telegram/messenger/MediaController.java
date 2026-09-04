@@ -516,6 +516,14 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
         @Nullable
         public Boolean highQuality;
         public boolean isHighQuality() {
+            // Extraordikami: force HD for every outgoing photo. This raises the
+            // encode ceiling from 1280px/quality 80 to 2560px/quality 99, which is
+            // the highest fidelity the photo path supports - Telegram always
+            // re-encodes a photo, so "no compression at all" is only achievable by
+            // sending as a file, which the user can still do per-item.
+            if (com.kaminari.gram.KamiConfig.forceHighQualityMedia()) {
+                return true;
+            }
             if (highQuality == null)
                 return SharedConfig.photoHighQualityDefault;
             return highQuality;

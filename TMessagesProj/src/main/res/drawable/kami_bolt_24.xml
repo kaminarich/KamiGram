@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  KamiGram bolt at settings-row scale.
+
+  The launcher monochrome layer is a 108dp adaptive-icon canvas whose art occupies
+  only the inner 72dp safe zone, so reusing it in a 24dp row renders the bolt at
+  roughly two thirds the size of every neighbouring icon. This is the same geometry
+  recentred on a 24dp viewport at 92% fill, matching the msg2_* row icons. Tinted
+  by TextCell, so the colour here is a placeholder.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M15.11,1.74 L6.71,13.55 L10.45,13.55 L8.58,22.26 L17.29,9.82 L12.62,9.82 Z"
+        android:fillColor="#FF000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.55"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+</vector>

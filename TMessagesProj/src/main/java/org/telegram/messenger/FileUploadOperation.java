@@ -318,6 +318,12 @@ public class FileUploadOperation {
                     uploadChunkSize = chunkSize;
                 }
                 maxRequestsCount = Math.max(1, (slowNetwork ? maxUploadingSlowNetworkKBytes : maxUploadingKBytes) / uploadChunkSize);
+                if (com.kaminari.gram.KamiConfig.boostNetwork() && !slowNetwork) {
+                    // Extraordikami boost: more parts in flight. Left alone on a slow
+                    // connection, where extra parallelism causes retries and ends up
+                    // slower than the default.
+                    maxRequestsCount = Math.min(24, maxRequestsCount * 2);
+                }
 
                 if (isEncrypted) {
                     freeRequestIvs = new ArrayList<>(maxRequestsCount);

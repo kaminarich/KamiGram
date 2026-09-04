@@ -21693,6 +21693,12 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
     }
 
     private int selectCompression() {
+        if (com.kaminari.gram.KamiConfig.forceHighQualityMedia() && compressionsCount > 0) {
+            // Extraordikami: pick the highest quality bucket the source supports.
+            // compressionsCount is derived from the source resolution, so the top
+            // index is the closest the transcoder gets to the original.
+            return compressionsCount - 1;
+        }
         //1GB
         if (originalSize > 1024L * 1024L * 1000L) {
             return compressionsCount - 1;

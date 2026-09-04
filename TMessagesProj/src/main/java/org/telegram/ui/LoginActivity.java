@@ -3075,7 +3075,14 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             settings.allow_flashcall = simcardAvailable && allowCall && allowCancelCall && allowReadCallLog;
             settings.allow_missed_call = simcardAvailable && allowCall;
             settings.allow_app_hash = settings.allow_firebase = PushListenerController.GooglePushListenerServiceProvider.INSTANCE.hasServices();
-            if (forceDisableSafetyNet || TextUtils.isEmpty(BuildVars.SAFETYNET_KEY)) {
+            if (forceDisableSafetyNet || TextUtils.isEmpty(BuildVars.SAFETYNET_KEY)
+                    || com.kaminari.gram.KamiConfig.bypassFirebaseLogin()) {
+                // Extraordikami: ask the server not to use Firebase/Play Integrity
+                // verification. Forks have no SafetyNet key of their own, so when the
+                // server picks that path the code never arrives and login dead-ends.
+                // Clearing allow_firebase makes the server fall back to plain SMS or
+                // a call. This is a request, not a bypass: the server still decides,
+                // and it does not affect any Premium requirement it may impose.
                 settings.allow_firebase = false;
             }
 

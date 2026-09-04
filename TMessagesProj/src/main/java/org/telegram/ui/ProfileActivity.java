@@ -10446,11 +10446,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                 }
 
                 settingsSectionRow2 = rowCount++;
+                kamiExtraRow = rowCount++;
                 chatRow = rowCount++;
                 privacyRow = rowCount++;
                 notificationRow = rowCount++;
                 dataRow = rowCount++;
-                kamiExtraRow = rowCount++;
                 liteModeRow = rowCount++;
 //                stickersRow = rowCount++;
                 if (getMessagesController().filtersEnabled || !getMessagesController().dialogFilters.isEmpty()) {
@@ -13601,7 +13601,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                     } else if (position == dataRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.DataSettings), R.drawable.msg2_data, true);
                     } else if (position == kamiExtraRow) {
-                        textCell.setTextAndIcon("Extraordikami", R.drawable.msg2_secret, true);
+                        textCell.setTextAndIcon("Extraordikami", R.drawable.kami_bolt_24, true);
                     } else if (position == chatRow) {
                         textCell.setTextAndIcon(LocaleController.getString(R.string.ChatSettings), R.drawable.msg2_discussion, true);
                     } else if (position == filtersRow) {

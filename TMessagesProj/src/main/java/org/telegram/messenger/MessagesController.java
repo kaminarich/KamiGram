@@ -10147,7 +10147,12 @@ public class MessagesController extends BaseController implements NotificationCe
         checkReadTasks();
 
         if (getUserConfig().isClientActivated()) {
-            if (!ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
+            if (com.kaminari.gram.KamiConfig.hideOnlineStatus()) {
+                // Extraordikami: never announce presence. Only the online push is
+                // suppressed - the offline branch below still runs, so the account
+                // settles to "last seen a long time ago" rather than staying stuck
+                // online from a previous session.
+            } else if (!ignoreSetOnline && getConnectionsManager().getPauseTime() == 0 && ApplicationLoader.isScreenOn && !ApplicationLoader.mainInterfacePausedStageQueue) {
                 if (ApplicationLoader.mainInterfacePausedStageQueueTime != 0 && Math.abs(ApplicationLoader.mainInterfacePausedStageQueueTime - System.currentTimeMillis()) > 1000) {
                     if (statusSettingState != 1 && (lastStatusUpdateTime == 0 || Math.abs(System.currentTimeMillis() - lastStatusUpdateTime) >= 55000 || offlineSent)) {
                         statusSettingState = 1;
@@ -11041,6 +11046,19 @@ public class MessagesController extends BaseController implements NotificationCe
         }
         if (threads.get(threadMsgId) != null) {
             return false;
+        }
+        // Extraordikami: suppress outgoing activity notices. action 0 is "typing",
+        // 1/3/4/5/7/8/9 are the record/upload notices ("sending a photo...",
+        // "sending a video..."). action 2 is Cancel and must always be delivered,
+        // otherwise a notice sent before the toggle was flipped would hang on the
+        // recipient's screen until it expired.
+        if (action != 2) {
+            if (action == 0 && com.kaminari.gram.KamiConfig.hideTypingStatus()) {
+                return false;
+            }
+            if (action != 0 && com.kaminari.gram.KamiConfig.hideMediaStatus()) {
+                return false;
+            }
         }
         if (!DialogObject.isEncryptedDialog(dialogId)) {
             TLRPC.TL_messages_setTyping req = new TLRPC.TL_messages_setTyping();

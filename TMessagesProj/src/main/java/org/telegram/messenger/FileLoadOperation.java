@@ -286,7 +286,17 @@ public class FileLoadOperation {
     }
 
     private void updateParams() {
-        if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams) && !forceSmallChunk) {
+        if (com.kaminari.gram.KamiConfig.boostNetwork() && !forceSmallChunk) {
+            // Extraordikami boost: the server-side rate limit cannot be removed by a
+            // client, so this raises the two things a client does control - chunk
+            // size and the number of parts requested in parallel. Telegram already
+            // ships exactly this path for accounts the server flags with
+            // getfileExperimentalParams; the toggle opts in unconditionally and goes
+            // one step further on parallelism.
+            downloadChunkSizeBig = 1024 * 512;
+            maxDownloadRequests = 12;
+            maxDownloadRequestsBig = 12;
+        } else if ((preloadPrefixSize > 0 || MessagesController.getInstance(currentAccount).getfileExperimentalParams) && !forceSmallChunk) {
             downloadChunkSizeBig = 1024 * 512;
             maxDownloadRequests = 8;
             maxDownloadRequestsBig = 8;
