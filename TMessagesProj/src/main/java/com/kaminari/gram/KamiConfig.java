@@ -30,6 +30,7 @@ import org.telegram.messenger.ApplicationLoader;
  *   <li>{@code boostNetwork} - FileLoadOperation.updateParams (download) and
  *       FileUploadOperation (upload)</li>
  *   <li>{@code forceHighQualityMedia} - MediaController.PhotoEntry.isHighQuality</li>
+ *   <li>{@code losslessMedia} - SendMessagesHelper.prepareSendingMedia, forceDocument</li>
  *   <li>{@code bypassFirebaseLogin} - LoginActivity code settings</li>
  * </ul>
  */
@@ -48,6 +49,7 @@ public final class KamiConfig {
     private static final String KEY_BOOST = "boostNetwork";
     private static final String KEY_HQ_MEDIA = "forceHighQualityMedia";
     private static final String KEY_BYPASS_FIREBASE = "bypassFirebaseLogin";
+    private static final String KEY_LOSSLESS = "losslessMedia";
 
     // on by default: these are KamiGram's identity
     public static volatile boolean showDeletedMessages = true;
@@ -61,6 +63,7 @@ public final class KamiConfig {
     public static volatile boolean boostNetwork = false;
     public static volatile boolean forceHighQualityMedia = false;
     public static volatile boolean bypassFirebaseLogin = false;
+    public static volatile boolean losslessMedia = false;
 
     private static SharedPreferences prefs;
     private static boolean loaded;
@@ -81,6 +84,7 @@ public final class KamiConfig {
             boostNetwork = prefs.getBoolean(KEY_BOOST, false);
             forceHighQualityMedia = prefs.getBoolean(KEY_HQ_MEDIA, false);
             bypassFirebaseLogin = prefs.getBoolean(KEY_BYPASS_FIREBASE, false);
+            losslessMedia = prefs.getBoolean(KEY_LOSSLESS, false);
             loaded = true;
         }
         return prefs;
@@ -138,6 +142,11 @@ public final class KamiConfig {
         return bypassFirebaseLogin;
     }
 
+    public static boolean losslessMedia() {
+        prefs();
+        return losslessMedia;
+    }
+
     public static void setShowDeletedMessages(boolean value) {
         showDeletedMessages = value;
         put(KEY_DELETED, value);
@@ -176,5 +185,10 @@ public final class KamiConfig {
     public static void setBypassFirebaseLogin(boolean value) {
         bypassFirebaseLogin = value;
         put(KEY_BYPASS_FIREBASE, value);
+    }
+
+    public static void setLosslessMedia(boolean value) {
+        losslessMedia = value;
+        put(KEY_LOSSLESS, value);
     }
 }

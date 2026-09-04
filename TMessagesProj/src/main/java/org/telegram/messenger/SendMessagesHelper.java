@@ -9851,6 +9851,14 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
         if (media.isEmpty()) {
             return;
         }
+        // Extraordikami lossless: route photos and videos down the document path, so
+        // the original file is uploaded byte-for-byte with no re-encode. This is the
+        // only way to defeat Telegram's compression - the media path always
+        // transcodes. Editing an existing message keeps the original behaviour,
+        // because a media message cannot change type after the fact.
+        if (com.kaminari.gram.KamiConfig.losslessMedia() && editingMessageObject == null) {
+            forceDocument = true;
+        }
         for (int a = 0, N = media.size(); a < N; a++) {
             if (media.get(a).ttl > 0) {
                 groupMedia = false;

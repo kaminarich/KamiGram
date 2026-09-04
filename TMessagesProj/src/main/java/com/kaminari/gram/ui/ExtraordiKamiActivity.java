@@ -16,7 +16,6 @@ import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.HeaderCell;
-import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
 import org.telegram.ui.Components.LayoutHelper;
@@ -24,19 +23,26 @@ import org.telegram.ui.Components.LayoutHelper;
 /**
  * Extraordikami: the hub for KamiGram's additional features.
  *
- * Two groups, because the risk profile is not the same:
- *
+ * <h3>How the toggles are driven</h3>
+ * Rows are toggled from the list's item-click listener, not from the Switch. This
+ * matters and was originally wrong here:
  * <ul>
- *   <li><b>Privacy and interface</b> - deterministic, client-side, safe to leave on.</li>
- *   <li><b>Experimental</b> - each one changes protocol-visible behaviour or leans on
- *       server behaviour that is not contractual. Off by default, and each shows a
- *       confirmation explaining the actual trade-off before it can be enabled.
- *       The disclaimers are deliberately specific rather than a generic warning:
- *       a vague "this may cause problems" teaches the user nothing.</li>
+ *   <li>{@code Switch} does not consume touch events, so tapping the switch itself
+ *       does nothing. Upstream screens (LiteModeSettingsActivity, and every
+ *       Settings page) all drive TextCheckCell from the row click.</li>
+ *   <li>{@code Switch.setChecked} invokes its listener, and binding a row calls
+ *       {@code setChecked}. Attaching a listener and then binding therefore fires
+ *       the listener during bind, which on a recycled view writes the previous
+ *       row's value into config.</li>
  * </ul>
+ * So: no checked-change listener at all, and every write goes through
+ * {@link #onRowClick}.
  *
- * Every toggle here has exactly one enforcement point in the codebase; see
- * {@link KamiConfig} for the map.
+ * <h3>Grouping</h3>
+ * Privacy and Interface are deterministic and client-side. Experimental toggles
+ * change protocol-visible behaviour or lean on non-contractual server behaviour;
+ * they are off by default and each explains its specific trade-off before being
+ * enabled.
  */
 public class ExtraordiKamiActivity extends BaseFragment {
 
@@ -56,6 +62,7 @@ public class ExtraordiKamiActivity extends BaseFragment {
     private int experimentalHeaderRow;
     private int boostRow;
     private int hqMediaRow;
+    private int losslessRow;
     private int loginRow;
     private int experimentalInfoRow;
 
@@ -78,6 +85,7 @@ public class ExtraordiKamiActivity extends BaseFragment {
         experimentalHeaderRow = rowCount++;
         boostRow = rowCount++;
         hqMediaRow = rowCount++;
+        losslessRow = rowCount++;
         loginRow = rowCount++;
         experimentalInfoRow = rowCount++;
     }
@@ -111,17 +119,99 @@ public class ExtraordiKamiActivity extends BaseFragment {
 
         adapter = new ListAdapter(context);
         listView.setAdapter(adapter);
+        listView.setOnItemClickListener((parent, view, position, id) -> onRowClick(position, view));
 
         return fragmentView;
     }
 
+    private void onRowClick(int position, View view) {
+        final boolean isCheck = view instanceof TextCheckCell;
+        if (!isCheck) {
+            return;
+        }
+        final TextCheckCell cell = (TextCheckCell) view;
+        final boolean enabling = !cell.isChecked();
+
+        if (position == hideOnlineRow) {
+            KamiConfig.setHideOnlineStatus(enabling);
+            cell.setChecked(enabling);
+        } else if (position == hideTypingRow) {
+            KamiConfig.setHideTypingStatus(enabling);
+            cell.setChecked(enabling);
+        } else if (position == hideMediaRow) {
+            KamiConfig.setHideMediaStatus(enabling);
+            cell.setChecked(enabling);
+        } else if (position == deletedMessagesRow) {
+            KamiConfig.setShowDeletedMessages(enabling);
+            cell.setChecked(enabling);
+        } else if (position == userIdRow) {
+            KamiConfig.setShowUserIdInProfile(enabling);
+            cell.setChecked(enabling);
+        } else if (position == boostRow) {
+            if (enabling) {
+                confirmExperimental(cell,
+                        "Boost Download & Upload",
+                        "KamiGram will request larger chunks and run more transfers in parallel.\n\n"
+                                + "Telegram enforces its speed limit on the server, so this cannot lift a cap on your account. "
+                                + "What it does recover is throughput lost to round trips, which is most noticeable on fast connections.\n\n"
+                                + "On a weak or metered connection it can be slower, because failed parts get retried. "
+                                + "It also uses more memory and battery while transferring.",
+                        () -> KamiConfig.setBoostNetwork(true));
+            } else {
+                KamiConfig.setBoostNetwork(false);
+                cell.setChecked(false);
+            }
+        } else if (position == hqMediaRow) {
+            if (enabling) {
+                confirmExperimental(cell,
+                        "Send Media in High Quality",
+                        "Photos are encoded at up to 2560px and quality 99 instead of 1280px and quality 80. "
+                                + "Videos use the highest quality bucket the source supports.\n\n"
+                                + "Telegram still re-encodes both, so this raises the ceiling but is not lossless. "
+                                + "For bit-exact originals use Send Media Losslessly below.\n\n"
+                                + "Uploads will be noticeably larger and slower.",
+                        () -> KamiConfig.setForceHighQualityMedia(true));
+            } else {
+                KamiConfig.setForceHighQualityMedia(false);
+                cell.setChecked(false);
+            }
+        } else if (position == losslessRow) {
+            if (enabling) {
+                confirmExperimental(cell,
+                        "Send Media Losslessly",
+                        "Photos and videos are sent as files, which uploads the original bytes with no re-encoding at all. "
+                                + "This is the only way to avoid Telegram's compression completely.\n\n"
+                                + "The trade-off is how they arrive: recipients see a file to download rather than an inline preview, "
+                                + "and the media will not appear in the chat's shared-media gallery.\n\n"
+                                + "Uploads are much larger. This overrides High Quality, which still re-encodes.",
+                        () -> KamiConfig.setLosslessMedia(true));
+            } else {
+                KamiConfig.setLosslessMedia(false);
+                cell.setChecked(false);
+            }
+        } else if (position == loginRow) {
+            if (enabling) {
+                confirmExperimental(cell,
+                        "Avoid Firebase Verification",
+                        "When signing in, KamiGram will ask Telegram not to use in-app Firebase verification and to send an SMS or place a call instead.\n\n"
+                                + "This helps because third-party clients have no verification key of their own, so when Telegram picks that method the code never arrives and sign-in dead-ends.\n\n"
+                                + "Telegram still decides which method to use, and this does not remove any other requirement it places on your number.",
+                        () -> KamiConfig.setBypassFirebaseLogin(true));
+            } else {
+                KamiConfig.setBypassFirebaseLogin(false);
+                cell.setChecked(false);
+            }
+        }
+    }
+
     /**
-     * Experimental toggles explain the specific trade-off before switching on.
-     * Turning one off is immediate: there is nothing to warn about.
+     * Experimental toggles explain the trade-off before switching on. Switching one
+     * off is immediate: there is nothing to warn about.
      */
-    private void confirmExperimental(String title, String message, Runnable onAccept) {
+    private void confirmExperimental(TextCheckCell cell, String title, String message, Runnable onAccept) {
         if (getParentActivity() == null) {
             onAccept.run();
+            cell.setChecked(true);
             return;
         }
         new AlertDialog.Builder(getParentActivity())
@@ -129,15 +219,9 @@ public class ExtraordiKamiActivity extends BaseFragment {
                 .setMessage(message)
                 .setPositiveButton("Enable", (dialog, which) -> {
                     onAccept.run();
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
+                    cell.setChecked(true);
                 })
-                .setNegativeButton(LocaleController.getString(R.string.Cancel), (dialog, which) -> {
-                    if (adapter != null) {
-                        adapter.notifyDataSetChanged();
-                    }
-                })
+                .setNegativeButton(LocaleController.getString(R.string.Cancel), null)
                 .show();
     }
 
@@ -226,8 +310,6 @@ public class ExtraordiKamiActivity extends BaseFragment {
                 cell = new TextCheckCell(context);
                 cell.setBackgroundColor(Theme.getColor(Theme.key_windowBackgroundWhite));
             }
-            final int row = position;
-            cell.getCheckBox().setOnCheckedChangeListener((view, checked) -> onToggle(row, checked));
 
             if (position == hideOnlineRow) {
                 cell.setTextAndValueAndCheck("Hide Online Status",
@@ -255,62 +337,18 @@ public class ExtraordiKamiActivity extends BaseFragment {
                         KamiConfig.boostNetwork(), true, true);
             } else if (position == hqMediaRow) {
                 cell.setTextAndValueAndCheck("Send Media in High Quality",
-                        "Force maximum resolution and quality for photos and videos",
+                        "Maximum resolution and quality, still re-encoded",
                         KamiConfig.forceHighQualityMedia(), true, true);
+            } else if (position == losslessRow) {
+                cell.setTextAndValueAndCheck("Send Media Losslessly",
+                        "Send photos and videos as files, with no compression at all",
+                        KamiConfig.losslessMedia(), true, true);
             } else if (position == loginRow) {
                 cell.setTextAndValueAndCheck("Avoid Firebase Verification",
                         "Ask Telegram for an SMS or call instead of app verification",
                         KamiConfig.bypassFirebaseLogin(), true, false);
             }
             return cell;
-        }
-
-        private void onToggle(int row, boolean checked) {
-            if (row == hideOnlineRow) {
-                KamiConfig.setHideOnlineStatus(checked);
-            } else if (row == hideTypingRow) {
-                KamiConfig.setHideTypingStatus(checked);
-            } else if (row == hideMediaRow) {
-                KamiConfig.setHideMediaStatus(checked);
-            } else if (row == deletedMessagesRow) {
-                KamiConfig.setShowDeletedMessages(checked);
-            } else if (row == userIdRow) {
-                KamiConfig.setShowUserIdInProfile(checked);
-            } else if (row == boostRow) {
-                if (checked) {
-                    confirmExperimental("Boost Download & Upload",
-                            "KamiGram will request larger chunks and run more transfers in parallel.\n\n"
-                                    + "Telegram enforces its speed limit on the server, so this cannot lift a cap on your account. "
-                                    + "What it does help with is throughput lost to round trips, which is most noticeable on fast connections.\n\n"
-                                    + "On a weak or metered connection it can be slower, because failed parts are retried. "
-                                    + "It also uses more memory and battery while transferring.",
-                            () -> KamiConfig.setBoostNetwork(true));
-                } else {
-                    KamiConfig.setBoostNetwork(false);
-                }
-            } else if (row == hqMediaRow) {
-                if (checked) {
-                    confirmExperimental("Send Media in High Quality",
-                            "Photos are encoded at up to 2560px and quality 99 instead of 1280px and quality 80. "
-                                    + "Videos use the highest quality bucket the source supports.\n\n"
-                                    + "Telegram always re-encodes photos and videos, so this raises the ceiling but is not truly lossless. "
-                                    + "For a bit-exact original, send the file as a document instead.\n\n"
-                                    + "Uploads will be considerably larger and slower.",
-                            () -> KamiConfig.setForceHighQualityMedia(true));
-                } else {
-                    KamiConfig.setForceHighQualityMedia(false);
-                }
-            } else if (row == loginRow) {
-                if (checked) {
-                    confirmExperimental("Avoid Firebase Verification",
-                            "When signing in, KamiGram will ask Telegram not to use in-app Firebase verification and to send an SMS or place a call instead.\n\n"
-                                    + "This helps because third-party clients have no verification key of their own, so when Telegram chooses that method the code never arrives and sign-in dead-ends.\n\n"
-                                    + "Telegram still decides which method to use, and this does not remove any other requirement it may place on your number.",
-                            () -> KamiConfig.setBypassFirebaseLogin(true));
-                } else {
-                    KamiConfig.setBypassFirebaseLogin(false);
-                }
-            }
         }
     }
 }
