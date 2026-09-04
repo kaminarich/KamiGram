@@ -88,6 +88,14 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
     protected float cornerRadius;
     protected Paint selectionPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     protected Paint selectionHandlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /**
+     * KamiGram: the wet edge of a highlighter stroke. A real marker leaves more
+     * pigment where the felt tip drags along the boundary, so the fill alone reads
+     * as a flat colour swap. Stroking the same path with a darker, more
+     * transparent pass gives the stroke an edge and makes the overlay obvious
+     * against both light and dark bubbles.
+     */
+    protected final Paint selectionInkEdgePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     protected CornerPath selectionPath = new CornerPath();
     protected Path selectionHandlePath = new Path();
     protected PathCopyTo selectionPathMirror = new PathCopyTo(selectionPath);
@@ -309,6 +317,9 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
         longpressDelay = ViewConfiguration.getLongPressTimeout();
         touchSlop = ViewConfiguration.get(ApplicationLoader.applicationContext).getScaledTouchSlop();
         selectionPaint.setPathEffect(new CornerPathEffect(cornerRadius = dp(6)));
+        selectionInkEdgePaint.setStyle(Paint.Style.STROKE);
+        selectionInkEdgePaint.setStrokeWidth(dp(1.33f));
+        selectionInkEdgePaint.setPathEffect(new CornerPathEffect(dp(6)));
         selectionPath.setRectsUnionDiffDelta(1f);
     }
 
@@ -1727,6 +1738,12 @@ public abstract class TextSelectionHelper<Cell extends TextSelectionHelper.Selec
         }
         selectionPath.closeRects();
         canvas.drawPath(selectionPath, selectionPaint);
+        // ink build-up along the stroke boundary: same hue, darker and thinner
+        final int fill = selectionPaint.getColor();
+        selectionInkEdgePaint.setColor(androidx.core.graphics.ColorUtils.setAlphaComponent(
+                androidx.core.graphics.ColorUtils.blendARGB(fill | 0xFF000000, 0xFF000000, 0.28f),
+                Math.min(255, (int) (android.graphics.Color.alpha(fill) * 1.15f))));
+        canvas.drawPath(selectionPath, selectionInkEdgePaint);
         if (restore) {
             canvas.restore();
             canvas.drawPath(selectionHandlePath, selectionHandlePaint);

@@ -445,7 +445,7 @@ public class ThemeColors {
         defaultColors[key_chat_mediaInfoText] = 0xFFFFFFFF;
         defaultColors[key_chat_linkSelectBackground] = 0x33F5F6F7;
         defaultColors[key_chat_outLinkSelectBackground] = 0x33F5F6F7;
-        defaultColors[key_chat_textSelectBackground] = 0x73A9D8BC;
+        defaultColors[key_chat_textSelectBackground] = 0x99228A41;
         defaultColors[key_chat_emojiPanelBackground] = 0xFFE4EBF5;
         defaultColors[key_chat_emojiSearchBackground] = 0xFFD8E2EE;
         defaultColors[key_chat_emojiSearchIcon] = 0xFF55606B;
@@ -652,10 +652,10 @@ public class ThemeColors {
         defaultColors[key_undo_cancelColor] = 0xFF8CC6E8;
         defaultColors[key_undo_infoColor] = 0xFFFFFFFF;
 
-        defaultColors[key_chat_outTextSelectionHighlight] = 0x99B4E8CB;
-        defaultColors[key_chat_inTextSelectionHighlight] = 0x99A8E6C3;
-        defaultColors[key_chat_TextSelectionCursor] = 0xFF3F9A5F;
-        defaultColors[key_chat_outTextSelectionCursor] = 0xFF3F9A5F;
+        defaultColors[key_chat_outTextSelectionHighlight] = 0xA6228A53;
+        defaultColors[key_chat_inTextSelectionHighlight] = 0xA6228A41;
+        defaultColors[key_chat_TextSelectionCursor] = 0xFF1F7A3C;
+        defaultColors[key_chat_outTextSelectionCursor] = 0xFF1F7A3C;
         defaultColors[key_chat_outBubbleLocationPlaceholder] = 0x1E3F5635;
         defaultColors[key_chat_inBubbleLocationPlaceholder] = 0x1E444F59;
         defaultColors[key_chat_BlurAlpha] = 0xB2000000;

@@ -5386,8 +5386,11 @@ public class Theme {
     public static Drawable createSimpleSelectorCircleDrawable(int size, int defaultColor, int pressedColor) {
         OvalShape ovalShape = new OvalShape();
         ovalShape.resize(size, size);
-        ShapeDrawable defaultDrawable = new ShapeDrawable(ovalShape);
-        defaultDrawable.getPaint().setColor(defaultColor);
+        // KamiGram: every circular button in the app is a raised knob - dual
+        // shadows, top-lit face, bevelled rim. One edit here covers the compose
+        // FAB, attach buttons, voice buttons and every round action button,
+        // because they all build their background through this factory.
+        Drawable defaultDrawable = new org.telegram.ui.Components.Skeuomorphic.RaisedCircleDrawable(defaultColor, 3f, null);
         ShapeDrawable pressedDrawable = new ShapeDrawable(ovalShape);
         pressedDrawable.getPaint().setColor(0xffffffff);
         ColorStateList colorStateList = new ColorStateList(

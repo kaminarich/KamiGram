@@ -593,6 +593,14 @@ public class AvatarDrawable extends Drawable {
                 canvas.drawRoundRect(AndroidUtilities.rectTmp, roundRadius, roundRadius, backgroundPaint);
             } else {
                 canvas.drawCircle(size / 2.0f, size / 2.0f, size / 2.0f, backgroundPaint);
+                // KamiGram: generated avatars get the same coin edge as photo
+                // avatars, so a letter avatar and a picture sit at the same depth.
+                // Drawn inside the circle; skipped while the archive avatar is
+                // mid-animation, where the shrinking radius makes an edge wrong.
+                if (alpha == 255 && archivedAvatarProgress == 0) {
+                    Skeuomorphic.drawCoinFrame(canvas, size / 2.0f, size / 2.0f, size / 2.0f,
+                            Skeuomorphic.isDark(resourcesProvider));
+                }
             }
             if (rotate45Background) {
                 canvas.restore();

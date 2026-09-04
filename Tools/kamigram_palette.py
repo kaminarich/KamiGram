@@ -284,16 +284,32 @@ AVATAR_WHEEL = {
 
 
 # ---- selection & quote visibility ---------------------------------------------
-# Upstream's in-bubble selection highlight was near-white at 31% alpha, invisible
-# on the pastel bubbles; the cursor was a slate that vanished against dark
-# bubbles. Selection is now pastel green in both modes, opaque enough to read
-# over any bubble, with a saturated cursor for the handles.
+# Upstream's in-bubble highlight was near-white at 31% alpha: mathematically
+# invisible on a light bubble (1.05:1 against it). The first fix raised alpha but
+# kept a pale pastel, which still only measured 1.15:1 - a colour swap, not a
+# highlighter.
+#
+# These values are solved rather than picked. A highlighter has two hard
+# requirements that pull against each other:
+#   1. the stroke must be visible against the bubble  -> composite vs bubble >= 1.75
+#   2. the text under it must stay readable           -> ink on composite >= 4.6
+# Alpha is capped at 65% so the stroke stays genuinely translucent (the text and
+# any emoji beneath it still show through, as with a real marker) instead of
+# becoming an opaque bar. Verified per bubble, per mode:
+#
+#   light in   composite #69AE81  vs bubble 2.34  text 4.60
+#   light out  composite #5CA78A  vs bubble 2.07  text 4.61
+#   dark  in   composite #3A7359  vs bubble 2.23  text 4.64
+#   dark  out  composite #317553  vs bubble 1.89  text 4.61
 CORE.update({
-    "chat_inTextSelectionHighlight":  (0x99A8E6C3, 0x995FB874),
-    "chat_outTextSelectionHighlight": (0x99B4E8CB, 0x9974C98A),
-    "chat_TextSelectionCursor":       (0xFF3F9A5F, 0xFF8CCB9F),
-    "chat_outTextSelectionCursor":    (0xFF3F9A5F, 0xFF8CCB9F),
-    "chat_textSelectBackground":      (0x73A9D8BC, 0x664FA968),
+    "chat_inTextSelectionHighlight":  (0xA6228A41, 0xA6409568),
+    "chat_outTextSelectionHighlight": (0xA6228A53, 0xA6309155),
+    # handles/cursor: deeper in light mode, brighter in dark, so the grab points
+    # read against the highlight itself rather than blending into it
+    "chat_TextSelectionCursor":       (0xFF1F7A3C, 0xFF56C47F),
+    "chat_outTextSelectionCursor":    (0xFF1F7A3C, 0xFF56C47F),
+    # composer selection sits on the panel, not a bubble
+    "chat_textSelectBackground":      (0x99228A41, 0x99409568),
 })
 
 AVATAR_INK = (0xFF2B3640, 0xFFEDE7DD)

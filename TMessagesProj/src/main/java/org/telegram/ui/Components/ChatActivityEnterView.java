@@ -14318,7 +14318,12 @@ public class ChatActivityEnterView extends FrameLayout implements
             updateColors();
             if (isNewDesignSendButton) {
                 checkBackgroundRect();
-                canvas.drawRoundRect(backgroundRect, dp(RADIUS), dp(RADIUS), backgroundPaint);
+                // KamiGram: the send/compose button is a raised physical key rather
+                // than a flat pill. Drawn through the shared depth engine so it
+                // matches the badges, switch knob and avatar frames.
+                org.telegram.ui.Components.Skeuomorphic.drawRaisedRound(canvas, backgroundRect,
+                        dp(RADIUS), backgroundPaint.getColor(),
+                        org.telegram.ui.Components.Skeuomorphic.isDark(resourcesProvider), 3f);
             }
 
             final boolean inactive = isInactive();
