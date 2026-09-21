@@ -414,6 +414,9 @@ TOUCHED_FILES = [
     "org/telegram/ui/Components/AvatarDrawable.java",
     "org/telegram/ui/ActionBar/Theme.java",
     "org/telegram/ui/Cells/TextSelectionHelper.java",
+    # readability guard call sites
+    "org/telegram/ui/bots/BotKeyboardView.java",
+    "org/telegram/ui/Gifts/GiftSheet.java",
 ]
 
 ALL = FORK_FILES + TOUCHED_FILES

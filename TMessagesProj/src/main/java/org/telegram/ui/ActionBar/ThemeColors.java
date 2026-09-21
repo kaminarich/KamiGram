@@ -65,7 +65,7 @@ public class ThemeColors {
         defaultColors[key_dialogShadowLine] = 0x14000000;
         defaultColors[key_dialogEmptyImage] = 0xFF97A9B4;
         defaultColors[key_dialogEmptyText] = 0xFF4D5F6A;
-        defaultColors[key_dialogSwipeRemove] = 0xFFC88880;
+        defaultColors[key_dialogSwipeRemove] = 0xFFB35E58;
         defaultColors[key_dialogReactionMentionBackground] = 0xFFF7F5F5;
         defaultColors[key_dialogCardShadow] = 0x1F000000;
         defaultColors[key_dialogGiftsBackground] = 0xFFFDFDFD;
@@ -226,7 +226,7 @@ public class ThemeColors {
 
         defaultColors[key_chats_onlineCircle] = 0xFFF1F3F1;
         defaultColors[key_chats_unreadCounter] = TELEGRAM_COLOR;
-        defaultColors[key_chats_unreadCounterMuted] = 0xFF6E7C8A;
+        defaultColors[key_chats_unreadCounterMuted] = 0xFF6A7886;
         defaultColors[key_chats_unreadCounterText] = 0xFFFFFFFF;
         defaultColors[key_chats_archiveBackground] = TELEGRAM_COLOR;
         defaultColors[key_chats_archivePinBackground] = 0xFF6E7C8A;
@@ -317,9 +317,9 @@ public class ThemeColors {
         defaultColors[key_chat_messageTextOut] = 0xFF23323D;
         defaultColors[key_chat_messageLinkIn] = 0xFF3F7196;
         defaultColors[key_chat_messageLinkOut] = 0xFF3F7196;
-        defaultColors[key_chat_serviceText] = 0xFFFFFFFF;
-        defaultColors[key_chat_serviceLink] = 0xFFFCFDFD;
-        defaultColors[key_chat_serviceIcon] = 0xFFFFFFFF;
+        defaultColors[key_chat_serviceText] = 0xFF3A4653;
+        defaultColors[key_chat_serviceLink] = 0xFF2F6B8A;
+        defaultColors[key_chat_serviceIcon] = 0xFF3A4653;
         defaultColors[key_chat_mediaTimeBackground] = 0x66ACBAC3;
         defaultColors[key_chat_outSentCheck] = 0xFF3F7A50;
         defaultColors[key_chat_outSentCheckSelected] = 0xFF376B46;

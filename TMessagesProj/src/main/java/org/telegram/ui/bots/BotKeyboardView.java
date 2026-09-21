@@ -247,6 +247,13 @@ public class BotKeyboardView extends LinearLayout implements InAppKeyboardInsetV
                 }
             }
 
+            // buttons sit on the emoji-panel background, so translucent fills
+            // composite onto that; a theme that ships text and fill of the same
+            // luminance would be invisible without this
+            color = Theme.blendOver(getThemedColor(Theme.key_chat_emojiPanelBackground), color);
+            pressed = Theme.blendOver(getThemedColor(Theme.key_chat_emojiPanelBackground), pressed);
+            textColor = Theme.ensureReadable(textColor, color);
+
             icon.setColorFilter(textColor);
             textView.setTextColor(textColor);
             setBackground(Theme.createSimpleSelectorRoundRectDrawable(

@@ -29,6 +29,11 @@ jobs:
           # not resolve symbols, so this catches the mistakes that otherwise cost
           # a full 47-minute native build to discover.
           python3 Tools/kamigram_verify.py
+          # Readability guard: no text/icon color may share luminance with the
+          # background it is drawn on. A palette change can silently do this -
+          # night.attheme once shipped bot-keyboard text on a fill of the same
+          # luminance, and the 1/2/3 menu became black on black.
+          python3 Tools/kamigram_contrast_check.py
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5

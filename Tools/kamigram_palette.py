@@ -171,7 +171,7 @@ CORE = {
     # Badge is a saturated fill with WHITE text: no ambiguity against the
     # bubble beside it, and clearly distinct from the muted/mention variants.
     "chats_unreadCounter":                (0xFF3F7A9B, 0xFF3A6B85),
-    "chats_unreadCounterMuted":           (0xFF6E7C8A, 0xFF3E464E),
+    "chats_unreadCounterMuted":           (0xFF6A7886, 0xFF3E464E),
     "chats_unreadCounterText":            (0xFFFFFFFF, 0xFFFFFFFF),
     "chats_sentCheck":                    (0xFF3F7A50, 0xFF7FC08E),
     "chats_sentReadCheck":                (0xFF3F7A50, 0xFF7FC08E),
@@ -215,8 +215,14 @@ CORE = {
     # wallpaper: pale blue wash, no cream
     "chat_wallpaper":                     (0xFFDCE5F0, 0xFF1A1E23),
     "chat_wallpaper_gradient_to1":        (0xFFE4EBF5, 0xFF20252B),
-    "chat_serviceText":                   (0xFFFFFFFF, 0xFFE6EBF0),
-    "chat_serviceIcon":                   (0xFFFFFFFF, 0xFFE6EBF0),
+    # Service messages ("X joined the channel") draw on a translucent fill
+    # composited over the chat wallpaper, so light-mode text must be dark ink:
+    # white-on-translucent-white measured 1.03 and was invisible.
+    "chat_serviceText":                   (0xFF3A4653, 0xFFE6EBF0),
+    "chat_serviceIcon":                   (0xFF3A4653, 0xFFE6EBF0),
+    "chat_serviceLink":                   (0xFF2F6B8A, 0xFF8CC6E8),
+    "chat_serviceBackground":             (0xE6FFFFFF, 0xE61C2026),
+    "chat_serviceBackgroundSelected":     (0xE6DCE5F0, 0xE62C3239),
 
     # ================================================================ COMPOSER
     "chat_messagePanelBackground":        (0xFFE9EFF7, 0xFF262B31),
@@ -228,6 +234,13 @@ CORE = {
     "chat_messagePanelVoicePressed":      (0xFFFFFFFF, 0xFFFFFFFF),
     "chat_messagePanelVoiceBackground":   (0xFF3F7A9B, 0xFF3A6B85),
     "chat_emojiPanelBackground":          (0xFFE4EBF5, 0xFF23282E),
+    # Bot keyboard buttons sit on the emoji panel and carry the reply-keyboard
+    # labels (the 1/2/3 menu a bot sends). Text must stay light in dark mode:
+    # an earlier TAIL pass darkened it to match the button fill and the labels
+    # vanished into their own background.
+    "chat_botKeyboardButtonText":         (0xF03B4951, 0xFFE6EBF0),
+    "chat_botKeyboardButtonBackground":   (0x66F8F9F9, 0xFF2C3138),
+    "chat_botKeyboardButtonBackgroundPressed": (0x66F3F4F4, 0xFF363C44),
     "chat_emojiSearchBackground":         (0xFFD8E2EE, 0xFF1E2227),
     "chat_emojiPanelIcon":                (0xFF667585, 0xFF8A96A2),
     "chat_emojiPanelIconSelected":        (0xFF2F6B8A, 0xFF8CC6E8),
@@ -255,6 +268,14 @@ CORE = {
     "undo_background":                    (0xFF2C3742, 0xFF313941),
     "undo_cancelColor":                   (0xFF8CC6E8, 0xFF8CC6E8),
     "undo_infoColor":                     (0xFFFFFFFF, 0xFFE6EBF0),
+
+    # ================================================================ SHEETS
+    # The gift sheet keeps its own background and tab text as a pair: in dark
+    # mode the background must go dark for the (light) body text to read.
+    # Leaving the background on its light default made every title light-on-light.
+    "dialogGiftsBackground":              (0xFFFDFDFD, 0xFF23282E),
+    "dialogGiftsTabText":                 (0xFF404F58, 0xFFD6DBE1),
+    "dialogSwipeRemove":                  (0xFFB35E58, 0xFF8C5A54),
 }
 
 # The seven-colour avatar wheel, hue identity preserved so users still recognise

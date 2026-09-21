@@ -268,7 +268,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         final TextView titleView = new TextView(context);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleView.setTypeface(AndroidUtilities.bold());
-        titleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        titleView.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
         titleView.setGravity(Gravity.CENTER);
         bottomView.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 4, 0, 4, 0));
         titleView.setMaxWidth(HintView2.cutInFancyHalf(titleView.getText(), titleView.getPaint()));
@@ -276,7 +276,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         final LinkSpanDrawable.LinksTextView subtitleView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
         subtitleView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        subtitleView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        subtitleView.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
         subtitleView.setGravity(Gravity.CENTER);
         subtitleView.setLineSpacing(dp(2.33f), 1.0f);
         bottomView.addView(subtitleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 4, 4, 4, 12));
@@ -305,7 +305,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         final TextView titleStarsView = new TextView(context);
         titleStarsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
         titleStarsView.setTypeface(AndroidUtilities.bold());
-        titleStarsView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        titleStarsView.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
         titleStarsView.setGravity(Gravity.CENTER);
         starsHeaderView.addView(titleStarsView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 4, 0, 4, 0));
 
@@ -318,7 +318,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         };
         subtitleStarsView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         subtitleStarsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        subtitleStarsView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        subtitleStarsView.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
         subtitleStarsView.setGravity(Gravity.CENTER);
 
         subtitleCollectiblesStarsView = new LinkSpanDrawable.LinksTextView(context, resourcesProvider) {
@@ -330,7 +330,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
         };
         subtitleCollectiblesStarsView.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
         subtitleCollectiblesStarsView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        subtitleCollectiblesStarsView.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+        subtitleCollectiblesStarsView.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
         subtitleCollectiblesStarsView.setGravity(Gravity.CENTER);
         subtitleCollectiblesStarsView.setAlpha(0.0f);
         subtitleCollectiblesStarsView.setScaleX(0.85f);
@@ -347,7 +347,7 @@ public class GiftSheet extends BottomSheetWithRecyclerListView implements Notifi
             final LinkSpanDrawable.LinksTextView subtitleStarsView2 = new LinkSpanDrawable.LinksTextView(context, resourcesProvider);
             subtitleStarsView2.setLinkTextColor(Theme.getColor(Theme.key_chat_messageLinkIn, resourcesProvider));
             subtitleStarsView2.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-            subtitleStarsView2.setTextColor(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider));
+            subtitleStarsView2.setTextColor(Theme.ensureReadable(Theme.getColor(Theme.key_dialogTextBlack, resourcesProvider), Theme.getColor(Theme.key_dialogGiftsBackground)));
             subtitleStarsView2.setGravity(Gravity.CENTER);
             starsHeaderView.addView(subtitleStarsView2, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 26, 4, 26, 6));
 

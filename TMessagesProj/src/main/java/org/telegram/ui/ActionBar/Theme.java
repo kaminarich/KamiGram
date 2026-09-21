@@ -2029,6 +2029,58 @@ public class Theme {
         return ColorUtils.setAlphaComponent(color, MathUtils.clamp((int) (Color.alpha(color) * multiply), 0, 0xFF));
     }
 
+    // KamiGram: readability guard. Themes are user-editable and some shipped
+    // palettes ended up with near-identical foreground/background pairs
+    // (bot-keyboard text on its own button background was black-on-black in
+    // the dark themes). These helpers measure that and repair it instead of
+    // trusting the palette.
+    private static float luminance(int color) {
+        float r = Color.red(color) / 255f, g = Color.green(color) / 255f, b = Color.blue(color) / 255f;
+        r = r <= 0.03928f ? r / 12.92f : (float) Math.pow((r + 0.055f) / 1.055f, 2.4f);
+        g = g <= 0.03928f ? g / 12.92f : (float) Math.pow((g + 0.055f) / 1.055f, 2.4f);
+        b = b <= 0.03928f ? b / 12.92f : (float) Math.pow((b + 0.055f) / 1.055f, 2.4f);
+        return 0.2126f * r + 0.7152f * g + 0.0722f * b;
+    }
+
+    public static float contrastRatio(int color1, int color2) {
+        float l1 = luminance(color1), l2 = luminance(color2);
+        float lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+        return (lighter + 0.05f) / (darker + 0.05f);
+    }
+
+    /**
+     * Returns the foreground color unchanged when it is legible on the given
+     * background, otherwise a tinted black/white that keeps the foreground's
+     * alpha and is guaranteed to reach at least {@code minContrast} (4.5 is
+     * the WCAG AA threshold for body text). Translucent backgrounds are
+     * composited over white/black first so the check matches what is drawn.
+     */
+    public static int ensureReadable(int foreground, int background, float minContrast) {
+        if (contrastRatio(foreground, background) >= minContrast) {
+            return foreground;
+        }
+        // composite translucent backgrounds onto their likely base
+        int bg = background;
+        if (Color.alpha(bg) < 0xFF) {
+            bg = blendOver(Color.alpha(bg) >= 0x80 ? Color.WHITE : Color.BLACK, bg);
+        }
+        boolean bgLight = luminance(bg) >= 0.5f;
+        int base = bgLight ? 0x101820 : 0xFFFFFF;
+        int fg = (foreground & 0xFF000000) | base;
+        // nudge until it clears the threshold, capped so tinted text stays tinted
+        float[] hsv = getTempHsv(5);
+        Color.colorToHSV(fg, hsv);
+        for (int i = 0; i < 8 && contrastRatio(fg, bg) < minContrast; i++) {
+            hsv[2] = MathUtils.clamp(hsv[2] + (bgLight ? -0.06f : 0.06f), 0.05f, 0.98f);
+            fg = Color.HSVToColor(Color.alpha(foreground), hsv);
+        }
+        return fg;
+    }
+
+    public static int ensureReadable(int foreground, int background) {
+        return ensureReadable(foreground, background, 4.5f);
+    }
+
     public static int reverseBlendOver(float ax, int y, int z) {
         float ay = Color.alpha(y) / 255f,
               az = Color.alpha(z) / 255f;
